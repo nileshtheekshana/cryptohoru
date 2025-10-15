@@ -28,3 +28,58 @@ export async function GET(
     );
   }
 }
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await connectDB();
+    const body = await request.json();
+    
+    const giveaway = await Giveaway.findByIdAndUpdate(
+      params.id,
+      body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!giveaway) {
+      return NextResponse.json(
+        { success: false, error: 'Giveaway not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ success: true, data: giveaway });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await connectDB();
+    
+    const giveaway = await Giveaway.findByIdAndDelete(params.id);
+    
+    if (!giveaway) {
+      return NextResponse.json(
+        { success: false, error: 'Giveaway not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ success: true, data: giveaway });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}

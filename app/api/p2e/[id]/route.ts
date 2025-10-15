@@ -28,3 +28,58 @@ export async function GET(
     );
   }
 }
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await connectDB();
+    const body = await request.json();
+    
+    const game = await P2EGame.findByIdAndUpdate(
+      params.id,
+      body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!game) {
+      return NextResponse.json(
+        { success: false, error: 'P2E game not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ success: true, data: game });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await connectDB();
+    
+    const game = await P2EGame.findByIdAndDelete(params.id);
+    
+    if (!game) {
+      return NextResponse.json(
+        { success: false, error: 'P2E game not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ success: true, data: game });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
