@@ -98,7 +98,11 @@ const P2EGameSchema = new Schema({
   playToEarnMechanism: { type: String },
   playLink: { type: String },
   websiteUrl: { type: String },
-  status: { type: String, enum: ['active', 'coming-soon', 'inactive', 'launched', 'beta', 'upcoming'], default: 'active' },
+  status: { 
+    type: String, 
+    enum: ['active', 'coming-soon', 'inactive'], 
+    default: 'active' 
+  },
   website: { type: String },
   twitter: { type: String },
   discord: { type: String },

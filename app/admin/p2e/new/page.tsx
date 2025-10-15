@@ -37,14 +37,17 @@ export default function NewP2EPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         alert('P2E game created successfully!');
         router.push('/admin');
       } else {
-        alert('Failed to create P2E game.');
+        alert(`Failed to create P2E game: ${data.error || 'Unknown error'}`);
+        console.error('Error details:', data);
       }
     } catch (error) {
-      alert('Error creating P2E game.');
+      alert('Error creating P2E game: ' + error);
       console.error(error);
     } finally {
       setLoading(false);
@@ -100,14 +103,13 @@ export default function NewP2EPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Game Type *
+                  Game Type
                 </label>
                 <input
                   type="text"
                   name="gameType"
                   value={formData.gameType}
                   onChange={handleChange}
-                  required
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., RPG, Strategy, Card"
                 />
@@ -115,14 +117,13 @@ export default function NewP2EPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Blockchain *
+                  Blockchain
                 </label>
                 <input
                   type="text"
                   name="blockchain"
                   value={formData.blockchain}
                   onChange={handleChange}
-                  required
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., Ethereum, Polygon"
                 />
@@ -132,14 +133,13 @@ export default function NewP2EPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Token Symbol *
+                  Token Symbol
                 </label>
                 <input
                   type="text"
                   name="tokenSymbol"
                   value={formData.tokenSymbol}
                   onChange={handleChange}
-                  required
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., GAME"
                 />
@@ -147,14 +147,13 @@ export default function NewP2EPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Earnings Info *
+                  Earnings Info
                 </label>
                 <input
                   type="text"
                   name="earnings"
                   value={formData.earnings}
                   onChange={handleChange}
-                  required
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., $5-20/day"
                 />
@@ -163,14 +162,13 @@ export default function NewP2EPage() {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Play Link *
+                Play Link
               </label>
               <input
                 type="url"
                 name="playLink"
                 value={formData.playLink}
                 onChange={handleChange}
-                required
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                 placeholder="https://..."
               />
