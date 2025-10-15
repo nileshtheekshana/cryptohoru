@@ -28,6 +28,12 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
+    
+    // Process tags if it's a string
+    if (typeof body.tags === 'string') {
+      body.tags = body.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean);
+    }
+    
     const article = await News.create(body);
     
     return NextResponse.json(

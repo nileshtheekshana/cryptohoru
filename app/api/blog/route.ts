@@ -28,6 +28,20 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
+    
+    // Generate slug from title if not provided
+    if (!body.slug && body.title) {
+      body.slug = body.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '') + '-' + Date.now();
+    }
+    
+    // Process tags if it's a string
+    if (typeof body.tags === 'string') {
+      body.tags = body.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean);
+    }
+    
     const post = await Blog.create(body);
     
     return NextResponse.json(
