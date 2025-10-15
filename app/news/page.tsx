@@ -86,7 +86,7 @@ export default async function NewsPage() {
                       <div className="flex items-start text-gray-600 dark:text-gray-400 text-sm">
                         <FaTags className="mr-2 mt-1" />
                         <div className="flex flex-wrap gap-1">
-                          {article.tags.map((tag: string, idx: number) => (
+                          {article.tags.slice(0, 3).map((tag: string, idx: number) => (
                             <span key={idx} className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded text-xs">
                               {tag}
                             </span>
@@ -96,16 +96,12 @@ export default async function NewsPage() {
                     )}
                   </div>
                   
-                  {article.sourceUrl && (
-                    <a
-                      href={article.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full bg-red-600 text-white py-2 rounded-lg font-semibold text-center hover:bg-red-700 transition"
-                    >
-                      Read Full Article
-                    </a>
-                  )}
+                  <Link
+                    href={`/news/${article._id}`}
+                    className="block w-full bg-red-600 text-white py-2 rounded-lg font-semibold text-center hover:bg-red-700 transition"
+                  >
+                    View Details
+                  </Link>
                 </div>
               </div>
             ))}

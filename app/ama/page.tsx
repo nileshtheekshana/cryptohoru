@@ -73,14 +73,12 @@ export default async function AMAPage() {
                   </span>
                 </div>
 
-                <a
-                  href={ama.platformLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={`/ama/${ama._id}`}
                   className="mt-4 block text-center bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition"
                 >
-                  Join AMA
-                </a>
+                  View Details
+                </Link>
               </div>
             ))}
           </div>

@@ -71,23 +71,26 @@ export default async function GiveawaysPage() {
                 <div className="mb-4">
                   <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Requirements:</p>
                   <ul className="space-y-1">
-                    {giveaway.requirements.map((req: string, index: number) => (
+                    {giveaway.requirements.slice(0, 3).map((req: string, index: number) => (
                       <li key={index} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <FaCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
                         <span>{req}</span>
                       </li>
                     ))}
+                    {giveaway.requirements.length > 3 && (
+                      <li className="text-sm text-gray-500 dark:text-gray-500 italic">
+                        +{giveaway.requirements.length - 3} more requirements...
+                      </li>
+                    )}
                   </ul>
                 </div>
 
-                <a
-                  href={giveaway.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={`/giveaways/${giveaway._id}`}
                   className="block text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
                 >
-                  Participate Now
-                </a>
+                  View Details
+                </Link>
               </div>
             ))}
           </div>

@@ -100,7 +100,7 @@ export default async function BlogPage() {
                     href={`/blog/${post._id}`}
                     className="block w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-center hover:bg-indigo-700 transition"
                   >
-                    Read Post
+                    View Details
                   </Link>
                 </div>
               </div>

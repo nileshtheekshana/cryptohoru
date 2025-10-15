@@ -78,26 +78,12 @@ export default async function P2EGamesPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <a
-                    href={game.playLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 text-center bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition"
-                  >
-                    Play Now
-                  </a>
-                  {game.websiteUrl && (
-                    <a
-                      href={game.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 border-2 border-orange-600 text-orange-600 rounded-lg hover:bg-orange-50 transition"
-                    >
-                      Website
-                    </a>
-                  )}
-                </div>
+                <Link
+                  href={`/p2e-games/${game._id}`}
+                  className="block text-center bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition"
+                >
+                  View Details
+                </Link>
               </div>
             ))}
           </div>
