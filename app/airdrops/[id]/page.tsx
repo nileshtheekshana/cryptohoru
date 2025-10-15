@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaCalendar, FaGlobe, FaTwitter, FaTelegram, FaDiscord, FaCheckCircle, FaExternalLinkAlt } from 'react-icons/fa';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 async function getAirdrop(id: string) {
   try {
@@ -64,9 +65,7 @@ export default async function AirdropDetailsPage({ params }: { params: { id: str
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
                 About this Airdrop
               </h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                {airdrop.description}
-              </p>
+              <MarkdownRenderer content={airdrop.description} />
             </div>
 
             {/* Tasks */}

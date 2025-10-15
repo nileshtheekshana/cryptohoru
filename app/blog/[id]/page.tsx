@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaUser, FaCalendar, FaTags, FaBlog } from 'react-icons/fa';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 async function getBlog(id: string) {
   try {
@@ -73,10 +74,8 @@ export default async function BlogDetailPage({ params }: { params: { id: string 
               </div>
             </div>
 
-            <div className="prose prose-lg dark:prose-invert max-w-none mb-8">
-              <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                {post.content}
-              </div>
+            <div className="mb-8">
+              <MarkdownRenderer content={post.content} />
             </div>
 
             {post.tags && post.tags.length > 0 && (

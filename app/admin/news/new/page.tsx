@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft } from 'react-icons/fa';
+import MarkdownEditor from '@/components/MarkdownEditor';
 
 export default function NewNewsPage() {
   const router = useRouter();
@@ -82,20 +83,14 @@ export default function NewNewsPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Content *
-              </label>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={handleChange}
-                required
-                rows={8}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Write the full news article..."
-              />
-            </div>
+            <MarkdownEditor
+              value={formData.content}
+              onChange={(value) => setFormData({ ...formData, content: value })}
+              label="Content"
+              required
+              rows={12}
+              placeholder="Write the full news article... Use Markdown for formatting and images."
+            />
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>

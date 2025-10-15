@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaUser, FaCalendar, FaTags, FaNewspaper, FaExternalLinkAlt } from 'react-icons/fa';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 async function getNews(id: string) {
   try {
@@ -73,10 +74,8 @@ export default async function NewsDetailPage({ params }: { params: { id: string 
               </div>
             </div>
 
-            <div className="prose prose-lg dark:prose-invert max-w-none mb-8">
-              <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                {article.content}
-              </div>
+            <div className="mb-8">
+              <MarkdownRenderer content={article.content} />
             </div>
 
             {article.sourceUrl && (

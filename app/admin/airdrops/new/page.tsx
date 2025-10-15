@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaPlus, FaTrash, FaArrowLeft } from 'react-icons/fa';
+import MarkdownEditor from '@/components/MarkdownEditor';
 
 interface Task {
   title: string;
@@ -116,19 +117,14 @@ export default function NewAirdropPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                Description *
-              </label>
-              <textarea
-                required
-                rows={4}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Describe the airdrop..."
-              />
-            </div>
+            <MarkdownEditor
+              value={formData.description}
+              onChange={(value) => setFormData({ ...formData, description: value })}
+              label="Description"
+              required
+              rows={8}
+              placeholder="Describe the airdrop... Use Markdown for formatting and images."
+            />
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
