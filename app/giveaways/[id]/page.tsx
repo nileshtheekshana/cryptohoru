@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaGift, FaCalendar, FaCheckCircle, FaExternalLinkAlt } from 'react-icons/fa';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 async function getGiveaway(id: string) {
   try {
@@ -60,9 +61,7 @@ export default async function GiveawayDetailPage({ params }: { params: { id: str
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
                 About this Giveaway
               </h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line mb-6">
-                {giveaway.description}
-              </p>
+              <MarkdownRenderer content={giveaway.description} />
 
               {giveaway.link && (
                 <a

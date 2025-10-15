@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaGamepad, FaCoins, FaGlobe, FaExternalLinkAlt } from 'react-icons/fa';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 async function getP2EGame(id: string) {
   try {
@@ -60,11 +61,9 @@ export default async function P2EDetailPage({ params }: { params: { id: string }
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
                 About this Game
               </h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line mb-6">
-                {game.description}
-              </p>
+              <MarkdownRenderer content={game.description} />
 
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 mt-6">
                 {game.playLink && (
                   <a
                     href={game.playLink}

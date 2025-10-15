@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft } from 'react-icons/fa';
+import MarkdownEditor from '@/components/MarkdownEditor';
 
 export default function NewAMAPage() {
   const router = useRouter();
@@ -84,20 +85,16 @@ export default function NewAMAPage() {
             </div>
 
             {/* Description */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Description *
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                required
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Describe what this AMA is about..."
-              />
-            </div>
+            <MarkdownEditor
+              value={formData.description}
+              onChange={(value) => setFormData({ ...formData, description: value })}
+              label="Description"
+              required
+              rows={8}
+              placeholder="Describe what this AMA is about... Use Markdown for formatting and images."
+            />
+
+            {/* Grid for Project & Host */}
 
             {/* Project Name */}
             <div>

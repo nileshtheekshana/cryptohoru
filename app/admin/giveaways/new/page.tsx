@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft } from 'react-icons/fa';
+import MarkdownEditor from '@/components/MarkdownEditor';
 
 export default function NewGiveawayPage() {
   const router = useRouter();
@@ -84,20 +85,14 @@ export default function NewGiveawayPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Description *
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                required
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Describe the giveaway..."
-              />
-            </div>
+            <MarkdownEditor
+              value={formData.description}
+              onChange={(value) => setFormData({ ...formData, description: value })}
+              label="Description"
+              required
+              rows={8}
+              placeholder="Describe the giveaway... Use Markdown for formatting and images."
+            />
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">

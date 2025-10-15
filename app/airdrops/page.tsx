@@ -140,8 +140,9 @@ export default async function AirdropsPage() {
                   <h3 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">
                     {airdrop.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                    {airdrop.description}
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                    {airdrop.description.replace(/[#*_`~>\[\]!]/g, '').substring(0, 150)}
+                    {airdrop.description.length > 150 ? '...' : ''}
                   </p>
 
                   {/* Info */}
