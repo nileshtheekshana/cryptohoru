@@ -229,14 +229,12 @@ export default function AdminPage() {
                       >
                         <FaEye /> View
                       </Link>
-                      {activeTab === 'airdrops' && (
-                        <Link
-                          href={`/admin/airdrops/${item._id}/edit`}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-semibold"
-                        >
-                          <FaEdit /> Manage Tasks
-                        </Link>
-                      )}
+                      <Link
+                        href={`/admin/${activeTab}/${item._id}/edit`}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-semibold"
+                      >
+                        <FaEdit /> {activeTab === 'airdrops' ? 'Manage Tasks' : 'Edit'}
+                      </Link>
                       <button
                         onClick={() => handleDelete(activeTab, item._id)}
                         disabled={deleting === item._id}
