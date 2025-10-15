@@ -5,6 +5,7 @@ import connectDB from "@/lib/mongodb";
 import { User } from "@/models";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",

@@ -4,8 +4,8 @@
 # This script pulls latest code and deploys to production
 
 # GitHub credentials for private repo
-GIT_USERNAME="buweshrajitha"
-GIT_PASSWORD="YOUR_GITHUB_TOKEN_HERE"  # Replace with your GitHub Personal Access Token
+GIT_USERNAME="nileshtheekshana"
+GIT_PASSWORD="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"  # Replace with your GitHub Personal Access Token
 
 # Colors for output
 GREEN='\033[0;32m'
