@@ -1,7 +1,28 @@
 import Link from 'next/link';
+import { FaNewspaper, FaUser, FaCalendar, FaTags } from 'react-icons/fa';
+
+async function getNews() {
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/news`, { 
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!res.ok) {
+      return [];
+    }
+    
+    const data = await res.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return [];
+  }
+}
 
 export default async function NewsPage() {
-  const news = [];
+  const news = await getNews();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -29,7 +50,65 @@ export default async function NewsPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* News cards will be rendered here */}
+            {news.map((article: any) => (
+              <div key={article._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition">
+                {article.imageUrl && (
+                  <img
+                    src={article.imageUrl}
+                    alt={article.title}
+                    className="w-full h-48 object-cover"
+                  />
+                )}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
+                    {article.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                    {article.content}
+                  </p>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <FaUser className="mr-2" />
+                      <span>{article.author}</span>
+                    </div>
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <FaNewspaper className="mr-2" />
+                      <span className="bg-red-100 dark:bg-red-900 px-2 py-1 rounded">
+                        {article.category}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <FaCalendar className="mr-2" />
+                      <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    {article.tags && article.tags.length > 0 && (
+                      <div className="flex items-start text-gray-600 dark:text-gray-400 text-sm">
+                        <FaTags className="mr-2 mt-1" />
+                        <div className="flex flex-wrap gap-1">
+                          {article.tags.map((tag: string, idx: number) => (
+                            <span key={idx} className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded text-xs">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {article.sourceUrl && (
+                    <a
+                      href={article.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full bg-red-600 text-white py-2 rounded-lg font-semibold text-center hover:bg-red-700 transition"
+                    >
+                      Read Full Article
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

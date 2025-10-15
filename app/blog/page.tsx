@@ -1,7 +1,28 @@
 import Link from 'next/link';
+import { FaBlog, FaUser, FaCalendar, FaTags } from 'react-icons/fa';
+
+async function getBlogs() {
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/blog`, { 
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!res.ok) {
+      return [];
+    }
+    
+    const data = await res.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+    return [];
+  }
+}
 
 export default async function BlogPage() {
-  const blogs = [];
+  const blogs = await getBlogs();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -29,7 +50,61 @@ export default async function BlogPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Blog cards will be rendered here */}
+            {blogs.map((post: any) => (
+              <div key={post._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition">
+                {post.imageUrl && (
+                  <img
+                    src={post.imageUrl}
+                    alt={post.title}
+                    className="w-full h-48 object-cover"
+                  />
+                )}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
+                    {post.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                    {post.content}
+                  </p>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <FaUser className="mr-2" />
+                      <span>{post.author}</span>
+                    </div>
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <FaBlog className="mr-2" />
+                      <span className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">
+                        {post.category}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                      <FaCalendar className="mr-2" />
+                      <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex items-start text-gray-600 dark:text-gray-400 text-sm">
+                        <FaTags className="mr-2 mt-1" />
+                        <div className="flex flex-wrap gap-1">
+                          {post.tags.map((tag: string, idx: number) => (
+                            <span key={idx} className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded text-xs">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <Link
+                    href={`/blog/${post._id}`}
+                    className="block w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-center hover:bg-indigo-700 transition"
+                  >
+                    Read Post
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
