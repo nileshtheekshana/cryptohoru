@@ -1,5 +1,17 @@
 import Link from 'next/link';
 import { FaExternalLinkAlt, FaTwitter, FaTelegram, FaDiscord, FaGlobe, FaClock, FaCheckCircle } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Crypto Airdrops - Free Token Distribution & Rewards",
+  description: "Find the latest cryptocurrency airdrops with detailed tasks. Participate in Bitcoin, Ethereum, and altcoin airdrops. Track ongoing airdrops and earn free crypto tokens daily.",
+  keywords: ["crypto airdrops", "free tokens", "airdrop crypto", "bitcoin airdrop", "ethereum airdrop", "free cryptocurrency", "token distribution"],
+  openGraph: {
+    title: "Crypto Airdrops - Free Token Distribution & Rewards",
+    description: "Find the latest cryptocurrency airdrops with detailed tasks. Participate in Bitcoin, Ethereum, and altcoin airdrops.",
+    url: "https://cryptohoru.com/airdrops",
+  },
+};
 
 async function getAirdrops() {
   try {

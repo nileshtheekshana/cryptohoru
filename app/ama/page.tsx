@@ -1,5 +1,17 @@
 import Link from 'next/link';
 import { FaCalendar, FaUsers, FaLink } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Crypto AMA Sessions - Ask Me Anything with Project Teams",
+  description: "Join live cryptocurrency AMA sessions with blockchain project founders and teams. Get your questions answered directly from crypto experts and industry leaders.",
+  keywords: ["crypto AMA", "ask me anything crypto", "blockchain AMA", "crypto Q&A", "project AMA sessions"],
+  openGraph: {
+    title: "Crypto AMA Sessions - Ask Me Anything with Project Teams",
+    description: "Join live cryptocurrency AMA sessions with blockchain project founders and teams.",
+    url: "https://cryptohoru.com/ama",
+  },
+};
 
 async function getAMAs() {
   try {

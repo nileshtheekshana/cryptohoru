@@ -1,5 +1,17 @@
 import Link from 'next/link';
 import { FaNewspaper, FaUser, FaCalendar, FaTags } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Crypto News - Latest Cryptocurrency & Blockchain Updates",
+  description: "Stay updated with the latest cryptocurrency news, blockchain technology updates, DeFi trends, NFT market analysis, and Bitcoin/Ethereum price movements.",
+  keywords: ["crypto news", "cryptocurrency news", "blockchain news", "bitcoin news", "ethereum news", "DeFi news", "NFT news"],
+  openGraph: {
+    title: "Crypto News - Latest Cryptocurrency & Blockchain Updates",
+    description: "Stay updated with the latest cryptocurrency news, blockchain technology updates, DeFi trends, and NFT market analysis.",
+    url: "https://cryptohoru.com/news",
+  },
+};
 
 async function getNews() {
   try {

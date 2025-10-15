@@ -1,5 +1,17 @@
 import Link from 'next/link';
 import { FaGift, FaCalendar, FaCheckCircle } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Crypto Giveaways - Win Free Cryptocurrency & Prizes",
+  description: "Participate in the latest crypto giveaways and win Bitcoin, Ethereum, NFTs, and other cryptocurrency prizes. Enter daily contests and win big in the crypto space.",
+  keywords: ["crypto giveaways", "bitcoin giveaway", "free crypto", "cryptocurrency contest", "NFT giveaway", "win crypto"],
+  openGraph: {
+    title: "Crypto Giveaways - Win Free Cryptocurrency & Prizes",
+    description: "Participate in the latest crypto giveaways and win Bitcoin, Ethereum, NFTs, and other cryptocurrency prizes.",
+    url: "https://cryptohoru.com/giveaways",
+  },
+};
 
 async function getGiveaways() {
   try {

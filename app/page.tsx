@@ -1,5 +1,17 @@
 import Link from 'next/link';
 import { FaGift, FaComments, FaGamepad, FaNewspaper, FaBlog, FaParachuteBox } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "CryptoHoru - Your Ultimate Crypto Airdrops & Giveaways Hub",
+  description: "Discover the latest cryptocurrency airdrops, participate in AMA sessions, win crypto giveaways, explore P2E games, and stay updated with blockchain news. Join thousands earning free crypto daily.",
+  openGraph: {
+    title: "CryptoHoru - Your Ultimate Crypto Airdrops & Giveaways Hub",
+    description: "Discover the latest cryptocurrency airdrops, participate in AMA sessions, win crypto giveaways, explore P2E games, and stay updated with blockchain news.",
+    url: "https://cryptohoru.com",
+    type: "website",
+  },
+};
 
 export default function Home() {
   const features = [

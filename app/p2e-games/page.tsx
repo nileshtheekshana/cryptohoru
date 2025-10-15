@@ -1,5 +1,17 @@
 import Link from 'next/link';
 import { FaGamepad, FaCoins, FaGlobe } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Play-to-Earn Games - Earn Crypto While Gaming",
+  description: "Discover the best P2E (Play-to-Earn) games where you can earn cryptocurrency and NFTs while playing. Explore blockchain games on Ethereum, Polygon, BSC, and more.",
+  keywords: ["play to earn games", "P2E games", "crypto games", "blockchain games", "earn crypto gaming", "NFT games", "GameFi"],
+  openGraph: {
+    title: "Play-to-Earn Games - Earn Crypto While Gaming",
+    description: "Discover the best P2E (Play-to-Earn) games where you can earn cryptocurrency and NFTs while playing.",
+    url: "https://cryptohoru.com/p2e-games",
+  },
+};
 
 async function getP2EGames() {
   try {

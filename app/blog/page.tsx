@@ -1,5 +1,17 @@
 import Link from 'next/link';
 import { FaBlog, FaUser, FaCalendar, FaTags } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Crypto Blog - Guides, Tutorials & Industry Insights",
+  description: "Read in-depth crypto guides, blockchain tutorials, DeFi strategies, NFT insights, and expert analysis on cryptocurrency trends and market movements.",
+  keywords: ["crypto blog", "blockchain guides", "DeFi tutorials", "NFT insights", "cryptocurrency analysis", "crypto education"],
+  openGraph: {
+    title: "Crypto Blog - Guides, Tutorials & Industry Insights",
+    description: "Read in-depth crypto guides, blockchain tutorials, DeFi strategies, and expert analysis on cryptocurrency trends.",
+    url: "https://cryptohoru.com/blog",
+  },
+};
 
 async function getBlogs() {
   try {
