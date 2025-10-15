@@ -1,30 +1,24 @@
 import Link from 'next/link';
 import { FaExternalLinkAlt, FaTwitter, FaTelegram, FaDiscord, FaGlobe, FaClock, FaCheckCircle } from 'react-icons/fa';
 
-// This would fetch from API in real implementation
 async function getAirdrops() {
-  // Mock data for now - will be replaced with actual API call
-  return [
-    {
-      _id: '1',
-      title: 'Sample Airdrop #1',
-      description: 'This is a sample airdrop. Connect your database to see real data.',
-      image: 'https://via.placeholder.com/400x200',
-      reward: '500 TOKENS',
-      blockchain: 'Ethereum',
-      status: 'active',
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      website: 'https://example.com',
-      twitter: 'https://twitter.com',
-      telegram: 'https://t.me',
-      tasks: [
-        { title: 'Follow on Twitter', description: 'Follow our Twitter account', type: 'social', completed: false },
-        { title: 'Join Telegram', description: 'Join our Telegram group', type: 'social', completed: false },
-      ],
-      tags: ['DeFi', 'NFT'],
-    },
-  ];
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/airdrops`, {
+      cache: 'no-store',
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to fetch airdrops');
+      return [];
+    }
+    
+    const data = await response.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error('Error fetching airdrops:', error);
+    return [];
+  }
 }
 
 export default async function AirdropsPage() {

@@ -1,7 +1,24 @@
 import Link from 'next/link';
+import { FaGift, FaCalendar, FaCheckCircle } from 'react-icons/fa';
+
+async function getGiveaways() {
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/giveaways`, { 
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching giveaways:', error);
+    return [];
+  }
+}
 
 export default async function GiveawaysPage() {
-  const giveaways = [];
+  const giveaways = await getGiveaways();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -18,18 +35,61 @@ export default async function GiveawaysPage() {
         {giveaways.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
-              No giveaways available. Add some from the admin panel.
+              No giveaways available. Check back soon!
             </p>
-            <Link
-              href="/admin"
-              className="inline-block bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
-            >
-              Go to Admin Panel
-            </Link>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Giveaway cards will be rendered here */}
+            {giveaways.map((giveaway: any) => (
+              <div key={giveaway._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+                {giveaway.imageUrl && (
+                  <img src={giveaway.imageUrl} alt={giveaway.title} className="w-full h-48 object-cover rounded-lg mb-4" />
+                )}
+                
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white">{giveaway.title}</h3>
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    giveaway.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {giveaway.status.charAt(0).toUpperCase() + giveaway.status.slice(1)}
+                  </span>
+                </div>
+
+                <p className="text-gray-600 dark:text-gray-400 mb-4">{giveaway.description}</p>
+                
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <FaGift className="text-green-500" />
+                    <span><strong>Prize:</strong> {giveaway.prize}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <FaCalendar className="text-green-500" />
+                    <span><strong>Ends:</strong> {new Date(giveaway.endDate).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Requirements:</p>
+                  <ul className="space-y-1">
+                    {giveaway.requirements.map((req: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <FaCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>{req}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <a
+                  href={giveaway.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+                >
+                  Participate Now
+                </a>
+              </div>
+            ))}
           </div>
         )}
       </div>
