@@ -2,6 +2,36 @@ import Link from 'next/link';
 import { FaExternalLinkAlt, FaTwitter, FaTelegram, FaDiscord, FaGlobe, FaClock, FaCheckCircle } from 'react-icons/fa';
 import type { Metadata } from 'next';
 
+interface Task {
+  _id?: string;
+  title: string;
+  description: string;
+  type?: string;
+  reward?: string;
+  link?: string;
+}
+
+interface Airdrop {
+  _id: string;
+  title: string;
+  description: string;
+  image?: string;
+  status: 'active' | 'upcoming' | 'ended';
+  reward?: string;
+  blockchain?: string;
+  category?: string;
+  startDate?: string;
+  endDate?: string;
+  website?: string;
+  twitter?: string;
+  telegram?: string;
+  discord?: string;
+  tags?: string[];
+  requirements?: string[];
+  tasks?: Task[];
+  createdAt?: string;
+}
+
 export const metadata: Metadata = {
   title: "Crypto Airdrops - Free Token Distribution & Rewards",
   description: "Find the latest cryptocurrency airdrops with detailed tasks. Participate in Bitcoin, Ethereum, and altcoin airdrops. Track ongoing airdrops and earn free crypto tokens daily.",
@@ -13,7 +43,7 @@ export const metadata: Metadata = {
   },
 };
 
-async function getAirdrops() {
+async function getAirdrops(): Promise<Airdrop[]> {
   try {
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const response = await fetch(`${baseUrl}/api/airdrops`, {
@@ -80,7 +110,7 @@ export default async function AirdropsPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {airdrops.map((airdrop) => (
+            {airdrops.map((airdrop: Airdrop) => (
               <div
                 key={airdrop._id}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
@@ -128,7 +158,7 @@ export default async function AirdropsPage() {
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {airdrop.tags?.map((tag, index) => (
+                    {airdrop.tags?.map((tag: string, index: number) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-full text-xs font-semibold"
@@ -144,7 +174,7 @@ export default async function AirdropsPage() {
                       Tasks: {airdrop.tasks?.length || 0}
                     </p>
                     <div className="space-y-1">
-                      {airdrop.tasks?.slice(0, 2).map((task, index) => (
+                      {airdrop.tasks?.slice(0, 2).map((task: Task, index: number) => (
                         <div key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                           <input type="checkbox" className="mr-2" readOnly />
                           <span className="truncate">{task.title}</span>
