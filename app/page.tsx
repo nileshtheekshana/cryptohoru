@@ -66,10 +66,10 @@ export default function Home() {
               Explore Airdrops
             </Link>
             <Link
-              href="/admin"
+              href="/auth/signup"
               className="bg-transparent border-2 border-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-4 rounded-lg transition transform hover:scale-105"
             >
-              Admin Panel
+              Get Started
             </Link>
           </div>
         </div>
