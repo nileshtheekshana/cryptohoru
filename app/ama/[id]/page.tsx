@@ -47,10 +47,10 @@ export default async function AMADetailPage({ params }: { params: { id: string }
       <div className="container mx-auto px-6 py-12">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {ama.imageUrl && (
+            {ama.image && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-8">
                 <img
-                  src={ama.imageUrl}
+                  src={ama.image}
                   alt={ama.title}
                   className="w-full h-64 object-cover"
                 />

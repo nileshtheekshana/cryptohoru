@@ -7,12 +7,13 @@ interface AMA {
   _id: string;
   title: string;
   description: string;
+  project: string;
   host: string;
   date: string;
-  time: string;
   platform: string;
-  link: string;
-  imageUrl?: string;
+  link?: string;
+  rewards?: string;
+  image?: string;
   status: string;
 }
 
@@ -30,12 +31,13 @@ export default function EditAMAPage({
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    project: "",
     host: "",
     date: "",
-    time: "",
     platform: "",
     link: "",
-    imageUrl: "",
+    rewards: "",
+    image: "",
     status: "upcoming",
   });
 
@@ -45,19 +47,26 @@ export default function EditAMAPage({
 
   const fetchAMA = async () => {
     try {
-      const response = await fetch(`/api/ama/${resolvedParams.id}`);
+      const response = await fetch(`/api/ama/${resolvedParams.id}`, { cache: 'no-store' });
       if (!response.ok) throw new Error("Failed to fetch AMA");
-      const data = await response.json();
+      const result = await response.json();
+      const data = result.data;
       setAma(data);
+      
+      // Extract date and time from datetime
+      const dateObj = new Date(data.date);
+      const dateStr = dateObj.toISOString().split('T')[0];
+      
       setFormData({
         title: data.title || "",
         description: data.description || "",
+        project: data.project || "",
         host: data.host || "",
-        date: data.date?.split("T")[0] || "",
-        time: data.time || "",
+        date: dateStr,
         platform: data.platform || "",
         link: data.link || "",
-        imageUrl: data.imageUrl || "",
+        rewards: data.rewards || "",
+        image: data.image || "",
         status: data.status || "upcoming",
       });
       setLoading(false);
@@ -143,6 +152,18 @@ export default function EditAMAPage({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
+                <label className="block text-gray-300 mb-2">Project *</label>
+                <input
+                  type="text"
+                  name="project"
+                  value={formData.project}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
                 <label className="block text-gray-300 mb-2">Host *</label>
                 <input
                   type="text"
@@ -153,7 +174,9 @@ export default function EditAMAPage({
                   className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-gray-300 mb-2">Platform *</label>
                 <input
@@ -166,9 +189,7 @@ export default function EditAMAPage({
                   className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-gray-300 mb-2">Date *</label>
                 <input
@@ -180,29 +201,28 @@ export default function EditAMAPage({
                   className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
-              <div>
-                <label className="block text-gray-300 mb-2">Time *</label>
-                <input
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-2">Join Link *</label>
+              <label className="block text-gray-300 mb-2">Join Link</label>
               <input
                 type="url"
                 name="link"
                 value={formData.link}
                 onChange={handleChange}
-                required
                 placeholder="https://..."
+                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-300 mb-2">Rewards</label>
+              <input
+                type="text"
+                name="rewards"
+                value={formData.rewards}
+                onChange={handleChange}
+                placeholder="e.g., $100 USDT"
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -211,8 +231,8 @@ export default function EditAMAPage({
               <label className="block text-gray-300 mb-2">Image URL</label>
               <input
                 type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
+                name="image"
+                value={formData.image}
                 onChange={handleChange}
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -229,8 +249,8 @@ export default function EditAMAPage({
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="upcoming">Upcoming</option>
-                <option value="ongoing">Ongoing</option>
-                <option value="ended">Ended</option>
+                <option value="live">Live</option>
+                <option value="completed">Completed</option>
               </select>
             </div>
 

@@ -53,21 +53,22 @@ export default async function GiveawaysPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {giveaways.map((giveaway: any) => (
-              <div key={giveaway._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition">
-                {giveaway.imageUrl && (
-                  <img src={giveaway.imageUrl} alt={giveaway.title} className="w-full h-48 object-cover rounded-lg mb-4" />
-                )}
-                
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-800 dark:text-white">{giveaway.title}</h3>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    giveaway.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {giveaway.status.charAt(0).toUpperCase() + giveaway.status.slice(1)}
-                  </span>
+              <div key={giveaway._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition">
+                <div className="w-full h-48 bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                  {giveaway.imageUrl || giveaway.image ? (
+                    <img src={giveaway.imageUrl || giveaway.image} alt={giveaway.title} className="w-full h-48 object-cover" />
+                  ) : (
+                    <div className="text-white text-center p-6">
+                      <div className="text-4xl mb-2">🎁</div>
+                      <div className="font-bold text-lg">{giveaway.title}</div>
+                      <div className="text-sm opacity-90">Giveaway</div>
+                    </div>
+                  )}
                 </div>
-
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{giveaway.description}</p>
+                
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{giveaway.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{giveaway.description}</p>
                 
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-2 text-sm">
@@ -77,6 +78,15 @@ export default async function GiveawaysPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <FaCalendar className="text-green-500" />
                     <span><strong>Ends:</strong> {new Date(giveaway.endDate).toLocaleDateString()}</span>
+                  </div>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      giveaway.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                    }`}>
+                      {giveaway.status.charAt(0).toUpperCase() + giveaway.status.slice(1)}
+                    </span>
                   </div>
                 </div>
 
@@ -99,10 +109,11 @@ export default async function GiveawaysPage() {
 
                 <Link
                   href={`/giveaways/${giveaway._id}`}
-                  className="block text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+                  className="mt-auto block text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
                 >
                   View Details
                 </Link>
+                </div>
               </div>
             ))}
           </div>

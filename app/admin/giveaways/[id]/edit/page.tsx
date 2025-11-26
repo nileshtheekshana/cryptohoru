@@ -10,8 +10,8 @@ interface Giveaway {
   prize: string;
   endDate: string;
   requirements: string[];
-  link: string;
-  imageUrl?: string;
+  link?: string;
+  image?: string;
   status: string;
 }
 
@@ -33,7 +33,7 @@ export default function EditGiveawayPage({
     endDate: "",
     requirements: [""],
     link: "",
-    imageUrl: "",
+    image: "",
     status: "active",
   });
 
@@ -43,9 +43,10 @@ export default function EditGiveawayPage({
 
   const fetchGiveaway = async () => {
     try {
-      const response = await fetch(`/api/giveaways/${resolvedParams.id}`);
+      const response = await fetch(`/api/giveaways/${resolvedParams.id}`, { cache: 'no-store' });
       if (!response.ok) throw new Error("Failed to fetch giveaway");
-      const data = await response.json();
+      const result = await response.json();
+      const data = result.data || result;
       setGiveaway(data);
       setFormData({
         title: data.title || "",
@@ -54,7 +55,7 @@ export default function EditGiveawayPage({
         endDate: data.endDate?.split("T")[0] || "",
         requirements: data.requirements?.length > 0 ? data.requirements : [""],
         link: data.link || "",
-        imageUrl: data.imageUrl || "",
+        image: data.image || data.imageUrl || "",
         status: data.status || "active",
       });
       setLoading(false);
@@ -243,8 +244,8 @@ export default function EditGiveawayPage({
               <label className="block text-gray-300 mb-2">Image URL</label>
               <input
                 type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
+                name="image"
+                value={formData.image}
                 onChange={handleChange}
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

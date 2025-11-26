@@ -10,7 +10,7 @@ interface Blog {
   author: string;
   category: string;
   tags: string[];
-  imageUrl?: string;
+  image?: string;
   slug?: string;
 }
 
@@ -31,7 +31,7 @@ export default function EditBlogPage({
     author: "",
     category: "",
     tags: [""],
-    imageUrl: "",
+    image: "",
   });
 
   useEffect(() => {
@@ -40,9 +40,10 @@ export default function EditBlogPage({
 
   const fetchBlog = async () => {
     try {
-      const response = await fetch(`/api/blog/${resolvedParams.id}`);
+      const response = await fetch(`/api/blog/${resolvedParams.id}`, { cache: 'no-store' });
       if (!response.ok) throw new Error("Failed to fetch blog");
-      const data = await response.json();
+      const result = await response.json();
+      const data = result.data || result;
       setBlog(data);
       setFormData({
         title: data.title || "",
@@ -50,7 +51,7 @@ export default function EditBlogPage({
         author: data.author || "",
         category: data.category || "",
         tags: data.tags?.length > 0 ? data.tags : [""],
-        imageUrl: data.imageUrl || "",
+        image: data.image || data.imageUrl || "",
       });
       setLoading(false);
     } catch (error) {
@@ -219,8 +220,8 @@ export default function EditBlogPage({
               <label className="block text-gray-300 mb-2">Image URL</label>
               <input
                 type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
+                name="image"
+                value={formData.image}
                 onChange={handleChange}
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

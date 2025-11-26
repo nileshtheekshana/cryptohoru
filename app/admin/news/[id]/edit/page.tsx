@@ -9,7 +9,7 @@ interface News {
   content: string;
   category: string;
   source: string;
-  imageUrl?: string;
+  image?: string;
   author?: string;
 }
 
@@ -29,7 +29,7 @@ export default function EditNewsPage({
     content: "",
     category: "",
     source: "",
-    imageUrl: "",
+    image: "",
     author: "",
   });
 
@@ -39,16 +39,17 @@ export default function EditNewsPage({
 
   const fetchNews = async () => {
     try {
-      const response = await fetch(`/api/news/${resolvedParams.id}`);
+      const response = await fetch(`/api/news/${resolvedParams.id}`, { cache: 'no-store' });
       if (!response.ok) throw new Error("Failed to fetch news");
-      const data = await response.json();
+      const result = await response.json();
+      const data = result.data || result;
       setNews(data);
       setFormData({
         title: data.title || "",
         content: data.content || "",
         category: data.category || "",
         source: data.source || "",
-        imageUrl: data.imageUrl || "",
+        image: data.image || data.imageUrl || "",
         author: data.author || "",
       });
       setLoading(false);
@@ -176,8 +177,8 @@ export default function EditNewsPage({
               <label className="block text-gray-300 mb-2">Image URL</label>
               <input
                 type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
+                name="image"
+                value={formData.image}
                 onChange={handleChange}
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

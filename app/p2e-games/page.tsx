@@ -53,23 +53,32 @@ export default async function P2EGamesPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {games.map((game: any) => (
-              <div key={game._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition">
-                {game.imageUrl && (
-                  <img src={game.imageUrl} alt={game.title} className="w-full h-48 object-cover rounded-lg mb-4" />
-                )}
-                
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-800 dark:text-white">{game.title}</h3>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    game.status === 'active' ? 'bg-green-100 text-green-800' : 
-                    game.status === 'coming-soon' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {game.status.replace('-', ' ').split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                  </span>
+              <div key={game._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition">
+                <div className="w-full h-48 bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
+                  {game.imageUrl || game.image ? (
+                    <img src={game.imageUrl || game.image} alt={game.title} className="w-full h-48 object-cover" />
+                  ) : (
+                    <div className="text-white text-center p-6">
+                      <div className="text-4xl mb-2">🎮</div>
+                      <div className="font-bold text-lg">{game.title}</div>
+                      <div className="text-sm opacity-90">P2E Game</div>
+                    </div>
+                  )}
                 </div>
-
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{game.description}</p>
+                
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{game.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{game.description}</p>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      game.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 
+                      game.status === 'coming-soon' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                    }`}>
+                      {game.status.replace('-', ' ').split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    </span>
+                  </div>
                 
                 <div className="space-y-2 mb-4 text-sm">
                   <div className="flex items-center gap-2">
@@ -92,10 +101,11 @@ export default async function P2EGamesPage() {
 
                 <Link
                   href={`/p2e-games/${game._id}`}
-                  className="block text-center bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition"
+                  className="mt-auto block text-center bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition"
                 >
                   View Details
                 </Link>
+                </div>
               </div>
             ))}
           </div>

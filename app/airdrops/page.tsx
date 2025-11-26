@@ -113,37 +113,40 @@ export default async function AirdropsPage() {
             {airdrops.map((airdrop: Airdrop) => (
               <div
                 key={airdrop._id}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition"
               >
                 {/* Image */}
-                <div className="relative h-48 bg-gradient-to-br from-blue-400 to-purple-400">
-                  {airdrop.image && (
-                    <img
-                      src={airdrop.image}
-                      alt={airdrop.title}
-                      className="w-full h-full object-cover"
-                    />
+                <div className="w-full h-48 bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                  {airdrop.image ? (
+                    <img src={airdrop.image} alt={airdrop.title} className="w-full h-48 object-cover" />
+                  ) : (
+                    <div className="text-white text-center p-6">
+                      <div className="text-4xl mb-2">🪂</div>
+                      <div className="font-bold text-lg line-clamp-2">{airdrop.title}</div>
+                      <div className="text-sm opacity-90">Airdrop</div>
+                    </div>
                   )}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      airdrop.status === 'active' ? 'bg-green-500 text-white' :
-                      airdrop.status === 'upcoming' ? 'bg-yellow-500 text-white' :
-                      'bg-gray-500 text-white'
-                    }`}>
-                      {airdrop.status.toUpperCase()}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">
                     {airdrop.title}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
                     {airdrop.description.replace(/[#*_`~>\[\]!]/g, '').substring(0, 150)}
                     {airdrop.description.length > 150 ? '...' : ''}
                   </p>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      airdrop.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                      airdrop.status === 'upcoming' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                    }`}>
+                      {airdrop.status.toUpperCase()}
+                    </span>
+                  </div>
 
                   {/* Info */}
                   <div className="space-y-2 mb-4">
@@ -209,7 +212,7 @@ export default async function AirdropsPage() {
                   {/* View Details Button */}
                   <Link
                     href={`/airdrops/${airdrop._id}`}
-                    className="w-full block text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
+                    className="mt-auto block text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
                   >
                     View Details & Tasks
                   </Link>

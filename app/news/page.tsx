@@ -63,15 +63,19 @@ export default async function NewsPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {news.map((article: any) => (
-              <div key={article._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition">
-                {article.imageUrl && (
-                  <img
-                    src={article.imageUrl}
-                    alt={article.title}
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-                <div className="p-6">
+              <div key={article._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-2xl transition">
+                <div className="w-full h-48 bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
+                  {article.imageUrl || article.image ? (
+                    <img src={article.imageUrl || article.image} alt={article.title} className="w-full h-48 object-cover" />
+                  ) : (
+                    <div className="text-white text-center p-6">
+                      <div className="text-4xl mb-2">📰</div>
+                      <div className="font-bold text-lg line-clamp-2">{article.title}</div>
+                      <div className="text-sm opacity-90">News Article</div>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
                     {article.title}
                   </h3>

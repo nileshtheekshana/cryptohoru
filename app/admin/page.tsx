@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaParachuteBox, FaComments, FaGift, FaGamepad, FaNewspaper, FaBlog, FaPlus, FaTrash, FaEye, FaEdit } from 'react-icons/fa';
+import { FaParachuteBox, FaComments, FaGift, FaGamepad, FaNewspaper, FaBlog, FaPlus, FaTrash, FaEye, FaEdit, FaSync } from 'react-icons/fa';
 
 interface ContentCounts {
   airdrops: number;
@@ -33,7 +33,7 @@ export default function AdminPage() {
       const results = await Promise.all(
         endpoints.map(async (endpoint) => {
           try {
-            const res = await fetch(`/api/${endpoint}`);
+            const res = await fetch(`/api/${endpoint}`, { cache: 'no-store' });
             if (res.ok) {
               const data = await res.json();
               return { endpoint, count: data.data?.length || 0 };
@@ -58,10 +58,15 @@ export default function AdminPage() {
   const fetchItems = async (type: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/${type}`);
+      const timestamp = new Date().getTime();
+      const res = await fetch(`/api/${type}?t=${timestamp}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        setItems(data.data || []);
+        // Remove duplicates on client side as backup
+        const uniqueItems = Array.from(
+          new Map(data.data?.map((item: any) => [item._id, item]) || []).values()
+        );
+        setItems(uniqueItems);
       }
     } catch (error) {
       console.error('Error fetching items:', error);
@@ -160,12 +165,23 @@ export default function AdminPage() {
                 </p>
               )}
             </div>
-            <Link
-              href={`/admin/${activeTab}/new`}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-            >
-              <FaPlus /> Add New
-            </Link>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  fetchItems(activeTab);
+                  fetchCounts();
+                }}
+                className="flex items-center gap-2 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition"
+              >
+                <FaSync /> Refresh
+              </button>
+              <Link
+                href={`/admin/${activeTab}/new`}
+                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                <FaPlus /> Add New
+              </Link>
+            </div>
           </div>
 
           {loading ? (

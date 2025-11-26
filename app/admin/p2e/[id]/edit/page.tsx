@@ -9,10 +9,11 @@ interface P2EGame {
   description: string;
   gameType?: string;
   blockchain?: string;
+  tokenSymbol?: string;
   earnings?: string;
   playLink?: string;
   websiteUrl?: string;
-  imageUrl?: string;
+  image?: string;
   status: string;
 }
 
@@ -32,10 +33,11 @@ export default function EditP2EPage({
     description: "",
     gameType: "",
     blockchain: "",
+    tokenSymbol: "",
     earnings: "",
     playLink: "",
     websiteUrl: "",
-    imageUrl: "",
+    image: "",
     status: "active",
   });
 
@@ -45,19 +47,21 @@ export default function EditP2EPage({
 
   const fetchGame = async () => {
     try {
-      const response = await fetch(`/api/p2e/${resolvedParams.id}`);
+      const response = await fetch(`/api/p2e/${resolvedParams.id}`, { cache: 'no-store' });
       if (!response.ok) throw new Error("Failed to fetch game");
-      const data = await response.json();
+      const result = await response.json();
+      const data = result.data || result;
       setGame(data);
       setFormData({
         title: data.title || "",
         description: data.description || "",
         gameType: data.gameType || "",
         blockchain: data.blockchain || "",
+        tokenSymbol: data.tokenSymbol || "",
         earnings: data.earnings || "",
         playLink: data.playLink || "",
         websiteUrl: data.websiteUrl || "",
-        imageUrl: data.imageUrl || "",
+        image: data.image || data.imageUrl || "",
         status: data.status || "active",
       });
       setLoading(false);
@@ -209,8 +213,8 @@ export default function EditP2EPage({
               <label className="block text-gray-300 mb-2">Image URL</label>
               <input
                 type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
+                name="image"
+                value={formData.image}
                 onChange={handleChange}
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

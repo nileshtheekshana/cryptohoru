@@ -18,7 +18,7 @@ export default function NewP2EPage() {
     earnings: '',
     playLink: '',
     websiteUrl: '',
-    imageUrl: '',
+    image: '',
     status: 'active',
   });
 
@@ -189,8 +189,8 @@ export default function NewP2EPage() {
               </label>
               <input
                 type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
+                name="image"
+                value={formData.image}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                 placeholder="https://..."
