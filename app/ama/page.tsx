@@ -1,4 +1,6 @@
-import AMAList from '@/components/AMAList';
+import AMAClientList from '@/components/AMAClientList';
+import connectDB from '@/lib/mongodb';
+import { AMA } from '@/models';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -12,7 +14,33 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AMAPage() {
+async function getAMAs() {
+  try {
+    await connectDB();
+    const [liveAMAs, upcomingAMAs, completedAMAs] = await Promise.all([
+      AMA.find({ status: 'live' }).sort({ date: 1 }).lean(),
+      AMA.find({ status: 'upcoming' }).sort({ date: 1 }).limit(100).lean(),
+      AMA.find({ status: 'completed' }).sort({ date: -1 }).limit(6).lean(),
+    ]);
+
+    return {
+      liveAMAs: JSON.parse(JSON.stringify(liveAMAs)),
+      upcomingAMAs: JSON.parse(JSON.stringify(upcomingAMAs)),
+      completedAMAs: JSON.parse(JSON.stringify(completedAMAs)),
+    };
+  } catch (error) {
+    console.error('Error fetching AMAs:', error);
+    return {
+      liveAMAs: [],
+      upcomingAMAs: [],
+      completedAMAs: [],
+    };
+  }
+}
+
+export default async function AMAPage() {
+  const { liveAMAs, upcomingAMAs, completedAMAs } = await getAMAs();
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
@@ -25,7 +53,11 @@ export default function AMAPage() {
       </div>
 
       <div className="container mx-auto px-6 py-12">
-        <AMAList />
+        <AMAClientList 
+          initialLiveAMAs={liveAMAs}
+          initialUpcomingAMAs={upcomingAMAs}
+          initialCompletedAMAs={completedAMAs}
+        />
       </div>
     </div>
   );

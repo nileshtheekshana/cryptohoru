@@ -2,33 +2,43 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaGift, FaCalendar, FaCheckCircle, FaExternalLinkAlt } from 'react-icons/fa';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import GiveawayTasks from '@/components/GiveawayTasks';
+import connectDB from '@/lib/mongodb';
+import { Giveaway } from '@/models';
 
 async function getGiveaway(id: string) {
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/giveaways/${id}`, { 
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    if (!res.ok) {
-      return null;
-    }
-    
-    const data = await res.json();
-    return data.data;
+    await connectDB();
+    const giveaway = await Giveaway.findById(id).lean();
+    return giveaway ? JSON.parse(JSON.stringify(giveaway)) : null;
   } catch (error) {
     console.error('Error fetching giveaway:', error);
     return null;
   }
 }
 
-export default async function GiveawayDetailPage({ params }: { params: { id: string } }) {
-  const giveaway = await getGiveaway(params.id);
+export default async function GiveawayDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const giveaway = await getGiveaway(id);
 
   if (!giveaway) {
     notFound();
   }
+
+  // Calculate dynamic status based on endDate
+  const getGiveawayStatus = (endDate: string): 'active' | 'ended' => {
+    const now = new Date();
+    const end = new Date(endDate);
+    
+    if (end < now) {
+      return 'ended';
+    } else {
+      return 'active';
+    }
+  };
+
+  const dynamicStatus = giveaway.endDate ? getGiveawayStatus(giveaway.endDate) : giveaway.status;
+  const isGiveawayEnded = dynamicStatus === 'ended';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -75,6 +85,17 @@ export default async function GiveawayDetailPage({ params }: { params: { id: str
               )}
             </div>
 
+            {/* Tasks with Status Tracking */}
+            {giveaway.tasks && giveaway.tasks.length > 0 && (
+              <div className="mb-8">
+                <GiveawayTasks 
+                  giveawayId={giveaway._id}
+                  tasks={giveaway.tasks}
+                  isGiveawayEnded={isGiveawayEnded}
+                />
+              </div>
+            )}
+
             {giveaway.requirements && giveaway.requirements.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -101,13 +122,11 @@ export default async function GiveawayDetailPage({ params }: { params: { id: str
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Status</p>
                   <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                    giveaway.status === 'active'
+                    dynamicStatus === 'active'
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                      : giveaway.status === 'upcoming'
-                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                       : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                   }`}>
-                    {giveaway.status.charAt(0).toUpperCase() + giveaway.status.slice(1)}
+                    {dynamicStatus === 'active' ? '🔴 Active' : 'Ended'}
                   </span>
                 </div>
 

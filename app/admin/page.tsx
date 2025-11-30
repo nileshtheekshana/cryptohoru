@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaParachuteBox, FaComments, FaGift, FaGamepad, FaNewspaper, FaBlog, FaPlus, FaTrash, FaEye, FaEdit, FaSync } from 'react-icons/fa';
+import { FaParachuteBox, FaComments, FaGift, FaGamepad, FaNewspaper, FaBlog, FaPlus, FaTrash, FaEye, FaEdit, FaSync, FaShareAlt, FaCopy, FaTimes } from 'react-icons/fa';
 
 interface ContentCounts {
   airdrops: number;
@@ -26,6 +26,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<any[]>([]);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [socialPostModal, setSocialPostModal] = useState<{ show: boolean; item: any; type: string } | null>(null);
 
   const fetchCounts = async () => {
     try {
@@ -108,6 +109,92 @@ export default function AdminPage() {
   useEffect(() => {
     fetchItems(activeTab);
   }, [activeTab]);
+
+  const generateSocialPost = (type: string, item: any): string => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cryptohoru.com';
+    const postUrl = `${baseUrl}${sections.find(s => s.id === type)?.path}/${item._id}`;
+    
+    switch (type) {
+      case 'airdrops':
+        let airdropPost = `🚀 NEW AIRDROP ALERT! 🚀\n\n`;
+        airdropPost += `📣 ${item.title}\n\n`;
+        if (item.reward) airdropPost += `💰 Reward: ${item.reward}\n`;
+        if (item.blockchain) airdropPost += `⛓️ Chain: ${item.blockchain}\n`;
+        if (item.tasks?.length) airdropPost += `📋 Tasks: ${item.tasks.length} to complete\n`;
+        if (item.endDate) airdropPost += `⏰ Deadline: ${new Date(item.endDate).toLocaleDateString()}\n`;
+        if (item.status) airdropPost += `📊 Status: ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}\n`;
+        airdropPost += `\n✅ Don't miss out! Check full details & participate:\n🔗 ${postUrl}\n\n`;
+        airdropPost += `#Airdrop #Crypto #${item.blockchain || 'Web3'} #FreeCrypto`;
+        return airdropPost;
+        
+      case 'giveaways':
+        let giveawayPost = `🎉 GIVEAWAY TIME! 🎉\n\n`;
+        giveawayPost += `🎁 ${item.title}\n\n`;
+        if (item.prize) giveawayPost += `🏆 Prize: ${item.prize}\n`;
+        if (item.project) giveawayPost += `🏢 By: ${item.project}\n`;
+        if (item.winners) giveawayPost += `👥 Winners: ${item.winners}\n`;
+        if (item.endDate) giveawayPost += `⏰ Ends: ${new Date(item.endDate).toLocaleDateString()}\n`;
+        if (item.requirements?.length) giveawayPost += `📝 Requirements: ${item.requirements.length} steps\n`;
+        giveawayPost += `\n🍀 Try your luck! Full details:\n🔗 ${postUrl}\n\n`;
+        giveawayPost += `#Giveaway #Crypto #Contest #Win`;
+        return giveawayPost;
+        
+      case 'ama':
+        let amaPost = `🎙️ AMA SESSION ANNOUNCEMENT 🎙️\n\n`;
+        amaPost += `🎤 ${item.title}\n\n`;
+        if (item.project) amaPost += `🏢 Project: ${item.project}\n`;
+        if (item.host) amaPost += `👤 Host: ${item.host}\n`;
+        if (item.date) amaPost += `📅 Date: ${new Date(item.date).toLocaleDateString()}\n`;
+        if (item.date) amaPost += `🕐 Time: ${new Date(item.date).toLocaleTimeString()}\n`;
+        if (item.platform) amaPost += `📍 Platform: ${item.platform}\n`;
+        amaPost += `\n❓ Got questions? Join us!\n🔗 ${postUrl}\n\n`;
+        amaPost += `#AMA #Crypto #AskMeAnything #Web3`;
+        return amaPost;
+        
+      case 'p2e':
+        let p2ePost = `🎮 PLAY-TO-EARN SPOTLIGHT 🎮\n\n`;
+        p2ePost += `🕹️ ${item.title}\n\n`;
+        if (item.blockchain) p2ePost += `⛓️ Blockchain: ${item.blockchain}\n`;
+        if (item.gameType) p2ePost += `🎯 Genre: ${item.gameType}\n`;
+        if (item.tokenSymbol) p2ePost += `🪙 Token: $${item.tokenSymbol}\n`;
+        if (item.earnings) p2ePost += `💵 Earnings: ${item.earnings}\n`;
+        if (item.status) p2ePost += `📊 Status: ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}\n`;
+        p2ePost += `\n🎯 Start earning now!\n🔗 ${postUrl}\n\n`;
+        p2ePost += `#P2E #PlayToEarn #GameFi #Crypto`;
+        return p2ePost;
+        
+      case 'news':
+        let newsPost = `📰 CRYPTO NEWS UPDATE 📰\n\n`;
+        newsPost += `📌 ${item.title}\n\n`;
+        if (item.category) newsPost += `📂 Category: ${item.category}\n`;
+        if (item.source) newsPost += `📡 Source: ${item.source}\n`;
+        if (item.author) newsPost += `✍️ By: ${item.author}\n`;
+        newsPost += `\n📖 Read the full story:\n🔗 ${postUrl}\n\n`;
+        newsPost += `#CryptoNews #Blockchain #Web3`;
+        return newsPost;
+        
+      case 'blog':
+        let blogPost = `📝 NEW BLOG POST 📝\n\n`;
+        blogPost += `✨ ${item.title}\n\n`;
+        if (item.author) blogPost += `✍️ Written by: ${item.author}\n`;
+        if (item.category) blogPost += `📂 Category: ${item.category}\n`;
+        if (item.tags?.length) blogPost += `🏷️ Topics: ${item.tags.slice(0, 3).join(', ')}\n`;
+        blogPost += `\n📚 Read more:\n🔗 ${postUrl}\n\n`;
+        blogPost += `#CryptoBlog #Blockchain #Web3`;
+        return blogPost;
+      default:
+        return `${item.title}\n\n🔗 ${postUrl}`;
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   const sections = [
     { id: 'airdrops', name: 'Airdrops', icon: <FaParachuteBox />, color: 'blue', path: '/airdrops' },
@@ -252,6 +339,12 @@ export default function AdminPage() {
                         <FaEdit /> {activeTab === 'airdrops' ? 'Manage Tasks' : 'Edit'}
                       </Link>
                       <button
+                        onClick={() => setSocialPostModal({ show: true, item, type: activeTab })}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-semibold"
+                      >
+                        <FaShareAlt /> Social Post
+                      </button>
+                      <button
                         onClick={() => handleDelete(activeTab, item._id)}
                         disabled={deleting === item._id}
                         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition text-sm font-semibold"
@@ -266,6 +359,43 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Social Post Modal */}
+      {socialPostModal?.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Social Media Post</h3>
+              <button
+                onClick={() => setSocialPostModal(null)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-4">
+              <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                {generateSocialPost(socialPostModal.type, socialPostModal.item)}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => copyToClipboard(generateSocialPost(socialPostModal.type, socialPostModal.item))}
+                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+              >
+                <FaCopy /> Copy Post
+              </button>
+              <Link
+                href={`${sections.find(s => s.id === socialPostModal.type)?.path}/${socialPostModal.item._id}`}
+                target="_blank"
+                className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition font-semibold"
+              >
+                <FaEye /> View on Site
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

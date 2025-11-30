@@ -19,8 +19,12 @@ export default function NewAMAPage() {
     platform: '',
     platformLink: '',
     imageUrl: '',
+    image: '',
     status: 'upcoming',
   });
+  const [createdItem, setCreatedItem] = useState<any | null>(null);
+  const [snippet, setSnippet] = useState('');
+  const [showSnippet, setShowSnippet] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -39,8 +43,14 @@ export default function NewAMAPage() {
       });
 
       if (response.ok) {
-        alert('AMA session created successfully!');
-        router.push('/admin');
+        const result = await response.json();
+        const created = result.data || result;
+        setCreatedItem(created);
+        // generate a short snippet with date, project and host
+        const when = created.date ? new Date(created.date).toLocaleString() : '';
+        const snippetText = `🎤 AMA: ${created.title}${created.project ? ` • ${created.project}` : ''}${created.host ? ` • Host: ${created.host}` : ''}${when ? ` • ${when}` : ''}. Join the conversation — details on our website.`;
+        setSnippet(snippetText);
+        setShowSnippet(true);
       } else {
         alert('Failed to create AMA session.');
       }
@@ -49,6 +59,16 @@ export default function NewAMAPage() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copySnippet = async () => {
+    try {
+      await navigator.clipboard.writeText(snippet);
+      alert('Post copied to clipboard');
+    } catch (err) {
+      console.error('Clipboard error', err);
+      alert('Failed to copy');
     }
   };
 
@@ -66,6 +86,18 @@ export default function NewAMAPage() {
           <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
             Add New AMA Session
           </h1>
+
+          {showSnippet && createdItem && (
+            <div className="mb-6 bg-yellow-50 dark:bg-yellow-900 p-4 rounded">
+              <h3 className="font-semibold text-gray-800 dark:text-yellow-200 mb-2">Social post (limited info, no links)</h3>
+              <p className="text-gray-700 dark:text-gray-200 mb-3 whitespace-pre-wrap">{snippet}</p>
+              <div className="flex gap-2">
+                <button onClick={copySnippet} type="button" className="bg-blue-600 text-white px-4 py-2 rounded">Copy Post</button>
+                <Link href={`/ama/${createdItem._id}`} className="px-4 py-2 border rounded text-gray-800 dark:text-gray-200">View on site</Link>
+                <Link href="/admin" className="px-4 py-2 border rounded text-gray-800 dark:text-gray-200">Done</Link>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}

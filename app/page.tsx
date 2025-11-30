@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FaGift, FaComments, FaGamepad, FaNewspaper, FaBlog, FaParachuteBox } from 'react-icons/fa';
+import { FaGift, FaComments, FaGamepad, FaNewspaper, FaBlog, FaParachuteBox, FaFaucet } from 'react-icons/fa';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -56,6 +56,13 @@ export default function Home() {
       description: 'Read in-depth articles, guides, and tutorials about cryptocurrency and blockchain.',
       href: '/blog',
       color: 'from-indigo-500 to-purple-500'
+    },
+    {
+      icon: <FaFaucet className="text-5xl text-yellow-500" />,
+      title: 'Testnet Faucet',
+      description: 'Get free testnet tokens for development and testing. Claim once every 24 hours.',
+      href: '/faucet',
+      color: 'from-yellow-500 to-orange-500'
     },
   ];
 

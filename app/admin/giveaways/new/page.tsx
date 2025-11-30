@@ -9,6 +9,9 @@ import MarkdownEditor from '@/components/MarkdownEditor';
 export default function NewGiveawayPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [createdItem, setCreatedItem] = useState<any | null>(null);
+  const [snippet, setSnippet] = useState('');
+  const [showSnippet, setShowSnippet] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -41,8 +44,13 @@ export default function NewGiveawayPage() {
       });
 
       if (response.ok) {
-        alert('Giveaway created successfully!');
-        router.push('/admin');
+        const result = await response.json();
+        const created = result.data || result;
+        setCreatedItem(created);
+        // generate snippet with limited info (no links)
+        const snippetText = `📣 ${created.title} — Prize: ${created.prize}${created.project ? ` • ${created.project}` : ''}. Ends ${created.endDate ? new Date(created.endDate).toLocaleDateString() : 'soon'}. Details on our website.`;
+        setSnippet(snippetText);
+        setShowSnippet(true);
       } else {
         alert('Failed to create giveaway.');
       }
@@ -51,6 +59,16 @@ export default function NewGiveawayPage() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copySnippet = async () => {
+    try {
+      await navigator.clipboard.writeText(snippet);
+      alert('Post copied to clipboard');
+    } catch (err) {
+      console.error('Clipboard error', err);
+      alert('Failed to copy');
     }
   };
 
@@ -68,6 +86,18 @@ export default function NewGiveawayPage() {
           <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
             Add New Giveaway
           </h1>
+
+          {showSnippet && createdItem && (
+            <div className="mb-6 bg-yellow-50 dark:bg-yellow-900 p-4 rounded">
+              <h3 className="font-semibold text-gray-800 dark:text-yellow-200 mb-2">Social post (limited info, no links)</h3>
+              <p className="text-gray-700 dark:text-gray-200 mb-3 whitespace-pre-wrap">{snippet}</p>
+              <div className="flex gap-2">
+                <button onClick={copySnippet} type="button" className="bg-blue-600 text-white px-4 py-2 rounded">Copy Post</button>
+                <Link href={`/giveaways/${createdItem._id}`} className="px-4 py-2 border rounded text-gray-800 dark:text-gray-200">View on site</Link>
+                <Link href="/admin" className="px-4 py-2 border rounded text-gray-800 dark:text-gray-200">Done</Link>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaCheckCircle, FaCircle, FaTasks, FaCoins } from 'react-icons/fa';
+import { FaCheckCircle, FaTimes, FaClock, FaTasks, FaCoins, FaTrophy, FaCircle } from 'react-icons/fa';
 
 interface CompletedTask {
   airdropId: string;
@@ -49,20 +49,25 @@ export default function DashboardPage() {
 
   const fetchUserData = async () => {
     try {
-      // Fetch user's followed airdrops
-      const response = await fetch('/api/users/me');
-      const data = await response.json();
+      // Fetch user's data and all active airdrops
+      const [userResponse, airdropsResponse] = await Promise.all([
+        fetch('/api/users/me'),
+        fetch('/api/airdrops?status=active')
+      ]);
       
-      if (data.success) {
-        setCompletedTasks(data.user.completedTasks || []);
+      const userData = await userResponse.json();
+      const airdropsData = await airdropsResponse.json();
+      
+      if (userData.success) {
+        setCompletedTasks(userData.user.completedTasks || []);
         
         // Fetch details of followed airdrops
-        if (data.user.followedAirdrops && data.user.followedAirdrops.length > 0) {
-          const airdropPromises = data.user.followedAirdrops.map((id: string) =>
+        if (userData.user.followedAirdrops && userData.user.followedAirdrops.length > 0) {
+          const airdropPromises = userData.user.followedAirdrops.map((id: string) =>
             fetch(`/api/airdrops/${id}`).then(res => res.json())
           );
           const airdrops = await Promise.all(airdropPromises);
-          setFollowedAirdrops(airdrops.filter(a => a.success).map(a => a.airdrop));
+          setFollowedAirdrops(airdrops.filter(a => a.success).map(a => a.data));
         }
       }
     } catch (error) {
@@ -71,6 +76,34 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+
+  const getTaskStats = () => {
+    let completed = 0;
+    let missed = 0;
+    let pending = 0;
+
+    followedAirdrops.forEach(airdrop => {
+      const isAirdropEnded = airdrop.endDate && new Date(airdrop.endDate) < new Date();
+      
+      airdrop.tasks.forEach((task: any) => {
+        const isCompleted = completedTasks.some(
+          ct => ct.airdropId === airdrop._id && ct.taskId === task._id
+        );
+
+        if (isCompleted) {
+          completed++;
+        } else if (isAirdropEnded) {
+          missed++;
+        } else {
+          pending++;
+        }
+      });
+    });
+
+    return { completed, missed, pending };
+  };
+
+  const taskStats = getTaskStats();
 
   const toggleTaskCompletion = async (airdropId: string, taskId: string) => {
     try {
@@ -150,25 +183,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Following</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                  {followedAirdrops.length}
-                </p>
-              </div>
-              <FaCoins className="text-4xl text-blue-500" />
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Tasks Completed</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                  {completedTasks.length}
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Completed</p>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-1">
+                  {taskStats.completed}
                 </p>
               </div>
               <FaCheckCircle className="text-4xl text-green-500" />
@@ -178,12 +199,36 @@ export default function DashboardPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Total Tasks</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                  {followedAirdrops.reduce((sum, a) => sum + a.tasks.length, 0)}
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Pending</p>
+                <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mt-1">
+                  {taskStats.pending}
                 </p>
               </div>
-              <FaTasks className="text-4xl text-purple-500" />
+              <FaClock className="text-4xl text-yellow-500" />
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Missed</p>
+                <p className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">
+                  {taskStats.missed}
+                </p>
+              </div>
+              <FaTimes className="text-4xl text-red-500" />
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Following</p>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+                  {followedAirdrops.length}
+                </p>
+              </div>
+              <FaTrophy className="text-4xl text-blue-500" />
             </div>
           </div>
         </div>

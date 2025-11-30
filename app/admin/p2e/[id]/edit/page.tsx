@@ -2,6 +2,17 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FaPlus, FaTrash } from 'react-icons/fa';
+
+interface Task {
+  _id?: string;
+  title: string;
+  description: string;
+  type: string;
+  reward: string;
+  link: string;
+  order: number;
+}
 
 interface P2EGame {
   _id: string;
@@ -15,6 +26,7 @@ interface P2EGame {
   websiteUrl?: string;
   image?: string;
   status: string;
+  tasks?: Task[];
 }
 
 export default function EditP2EPage({
@@ -27,6 +39,7 @@ export default function EditP2EPage({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [game, setGame] = useState<P2EGame | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -64,12 +77,34 @@ export default function EditP2EPage({
         image: data.image || data.imageUrl || "",
         status: data.status || "active",
       });
+      setTasks(data.tasks || []);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching game:", error);
       alert("Failed to load game");
       router.push("/admin");
     }
+  };
+
+  const addTask = () => {
+    setTasks([...tasks, {
+      title: '',
+      description: '',
+      type: 'social',
+      reward: '',
+      link: '',
+      order: tasks.length,
+    }]);
+  };
+
+  const removeTask = (index: number) => {
+    setTasks(tasks.filter((_, i) => i !== index));
+  };
+
+  const updateTask = (index: number, field: string, value: string) => {
+    const newTasks = [...tasks];
+    newTasks[index] = { ...newTasks[index], [field]: value };
+    setTasks(newTasks);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +115,10 @@ export default function EditP2EPage({
       const response = await fetch(`/api/p2e/${resolvedParams.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          tasks,
+        }),
       });
 
       if (!response.ok) throw new Error("Failed to update game");
@@ -234,6 +272,91 @@ export default function EditP2EPage({
                 <option value="upcoming">Upcoming</option>
                 <option value="ended">Ended</option>
               </select>
+            </div>
+
+            {/* Tasks Section */}
+            <div className="border-t border-gray-700 pt-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-white">
+                  Tasks (Can be added over time)
+                </h3>
+                <button
+                  type="button"
+                  onClick={addTask}
+                  className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition"
+                >
+                  <FaPlus /> Add Task
+                </button>
+              </div>
+
+              {tasks.map((task, index) => (
+                <div key={index} className="bg-gray-700 p-4 rounded-lg mb-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="font-semibold text-gray-300">Task {index + 1}</h4>
+                    <button
+                      type="button"
+                      onClick={() => removeTask(index)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <input
+                      type="text"
+                      placeholder="Task Title"
+                      value={task.title}
+                      onChange={(e) => updateTask(index, 'title', e.target.value)}
+                      className="px-3 py-2 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+
+                    <textarea
+                      placeholder="Task Description"
+                      value={task.description}
+                      onChange={(e) => updateTask(index, 'description', e.target.value)}
+                      className="px-3 py-2 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                      rows={2}
+                    />
+
+                    <div className="grid md:grid-cols-3 gap-3">
+                      <select
+                        value={task.type}
+                        onChange={(e) => updateTask(index, 'type', e.target.value)}
+                        className="px-3 py-2 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="social">Social</option>
+                        <option value="transaction">Transaction</option>
+                        <option value="verification">Verification</option>
+                        <option value="quiz">Quiz</option>
+                        <option value="other">Other</option>
+                      </select>
+
+                      <input
+                        type="text"
+                        placeholder="Reward (optional)"
+                        value={task.reward}
+                        onChange={(e) => updateTask(index, 'reward', e.target.value)}
+                        className="px-3 py-2 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+
+                      <input
+                        type="url"
+                        placeholder="Link (optional)"
+                        value={task.link}
+                        onChange={(e) => updateTask(index, 'link', e.target.value)}
+                        className="px-3 py-2 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {tasks.length === 0 && (
+                <p className="text-gray-400 text-center py-4">
+                  No tasks added yet. Click "Add Task" to add tasks that users need to complete.
+                </p>
+              )}
             </div>
 
             <div className="flex gap-4">

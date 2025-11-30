@@ -5,7 +5,7 @@
 
 # GitHub credentials for private repo
 GIT_USERNAME="nileshtheekshana"
-GIT_PASSWORD="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"  # Replace with your GitHub Personal Access Token
+GIT_PASSWORD="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"  # Replace with your new GitHub Personal Access Token
 
 # Colors for output
 GREEN='\033[0;32m'

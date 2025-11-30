@@ -7,11 +7,12 @@ export const runtime = 'nodejs';
 // GET single airdrop
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
-    const airdrop = await Airdrop.findById(params.id);
+    const airdrop = await Airdrop.findById(id);
     
     if (!airdrop) {
       return NextResponse.json(
@@ -32,14 +33,15 @@ export async function GET(
 // PUT update airdrop
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
     const body = await request.json();
     
     const airdrop = await Airdrop.findByIdAndUpdate(
-      params.id,
+      id,
       { ...body, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
@@ -63,11 +65,12 @@ export async function PUT(
 // DELETE airdrop
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
-    const airdrop = await Airdrop.findByIdAndDelete(params.id);
+    const airdrop = await Airdrop.findByIdAndDelete(id);
     
     if (!airdrop) {
       return NextResponse.json(

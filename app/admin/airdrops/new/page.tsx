@@ -19,6 +19,9 @@ export default function NewAirdropPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [createdItem, setCreatedItem] = useState<any | null>(null);
+  const [snippet, setSnippet] = useState('');
+  const [showSnippet, setShowSnippet] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -73,8 +76,12 @@ export default function NewAirdropPage() {
       });
 
       if (response.ok) {
-        alert('Airdrop created successfully!');
-        router.push('/admin');
+        const result = await response.json();
+        const created = result.data || result;
+        setCreatedItem(created);
+        const snippetText = `📣 ${created.title}${created.reward ? ` — Reward: ${created.reward}` : ''}${created.tasks?.length ? ` • ${created.tasks.length} tasks` : ''}. Learn more on our website.`;
+        setSnippet(snippetText);
+        setShowSnippet(true);
       } else {
         alert('Failed to create airdrop. Make sure MongoDB is connected.');
       }
@@ -83,6 +90,16 @@ export default function NewAirdropPage() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copySnippet = async () => {
+    try {
+      await navigator.clipboard.writeText(snippet);
+      alert('Post copied to clipboard');
+    } catch (err) {
+      console.error('Clipboard error', err);
+      alert('Failed to copy');
     }
   };
 
@@ -100,6 +117,18 @@ export default function NewAirdropPage() {
           <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
             Add New Airdrop
           </h1>
+
+          {showSnippet && createdItem && (
+            <div className="mb-6 bg-yellow-50 dark:bg-yellow-900 p-4 rounded">
+              <h3 className="font-semibold text-gray-800 dark:text-yellow-200 mb-2">Social post (limited info, no links)</h3>
+              <p className="text-gray-700 dark:text-gray-200 mb-3 whitespace-pre-wrap">{snippet}</p>
+              <div className="flex gap-2">
+                <button onClick={copySnippet} type="button" className="bg-blue-600 text-white px-4 py-2 rounded">Copy Post</button>
+                <Link href={`/airdrops/${createdItem._id}`} className="px-4 py-2 border rounded text-gray-800 dark:text-gray-200">View on site</Link>
+                <Link href="/admin" className="px-4 py-2 border rounded text-gray-800 dark:text-gray-200">Done</Link>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Info */}

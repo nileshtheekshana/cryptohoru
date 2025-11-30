@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { FaExternalLinkAlt, FaTwitter, FaTelegram, FaDiscord, FaGlobe, FaClock, FaCheckCircle } from 'react-icons/fa';
 import type { Metadata } from 'next';
+import connectDB from '@/lib/mongodb';
+import { Airdrop as AirdropModel } from '@/models';
 
 interface Task {
   _id?: string;
@@ -45,18 +47,9 @@ export const metadata: Metadata = {
 
 async function getAirdrops(): Promise<Airdrop[]> {
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/airdrops`, {
-      cache: 'no-store',
-    });
-    
-    if (!response.ok) {
-      console.error('Failed to fetch airdrops');
-      return [];
-    }
-    
-    const data = await response.json();
-    return data.success ? data.data : [];
+    await connectDB();
+    const airdrops = await AirdropModel.find({}).sort({ createdAt: -1 }).lean();
+    return JSON.parse(JSON.stringify(airdrops));
   } catch (error) {
     console.error('Error fetching airdrops:', error);
     return [];
