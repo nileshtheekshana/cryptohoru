@@ -263,6 +263,7 @@ export default function NewAMAPage() {
                 <option value="upcoming">Upcoming</option>
                 <option value="live">Live</option>
                 <option value="completed">Completed</option>
+                <option value="hidden">Hidden (Draft)</option>
               </select>
             </div>
 

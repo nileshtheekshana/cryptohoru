@@ -209,6 +209,7 @@ export default function NewAirdropPage() {
                   <option value="active">Active</option>
                   <option value="upcoming">Upcoming</option>
                   <option value="ended">Ended</option>
+                  <option value="hidden">Hidden (Draft)</option>
                 </select>
               </div>
 

@@ -12,8 +12,12 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
+    const includeHidden = searchParams.get('includeHidden') === 'true';
     
-    const filter = category ? { category } : {};
+    let filter: any = {};
+    if (category) filter.category = category;
+    if (!includeHidden) filter.published = true;
+    
     const posts = await Blog.find(filter).sort({ createdAt: -1 });
     
     return NextResponse.json({ success: true, data: posts });

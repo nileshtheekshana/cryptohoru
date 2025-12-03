@@ -11,8 +11,15 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
+    const includeHidden = searchParams.get('includeHidden') === 'true';
     
-    const filter = status ? { status } : {};
+    let filter: any = {};
+    if (status) {
+      filter.status = status;
+    } else if (!includeHidden) {
+      // Exclude hidden items from public listing
+      filter.status = { $ne: 'hidden' };
+    }
     const airdrops = await Airdrop.find(filter).sort({ createdAt: -1 });
     
     return NextResponse.json({ success: true, data: airdrops });

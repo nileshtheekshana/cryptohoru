@@ -32,20 +32,22 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get('status');
+    const includeHidden = searchParams.get('includeHidden') === 'true';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
     const skip = (page - 1) * limit;
     
-    // Get all AMAs
+    // Get all AMAs (excluding hidden unless requested)
     const now = new Date();
     const nowTime = now.getTime();
-    const allAMAs = await AMA.find({});
+    const baseFilter = includeHidden ? {} : { status: { $ne: 'hidden' } };
+    const allAMAs = await AMA.find(baseFilter);
     
     // Update statuses directly and save individually (ensures immediate consistency)
     for (const ama of allAMAs) {
       try {
-        // Skip AMAs with empty or invalid dates
-        if (!ama.date) continue;
+        // Skip AMAs with empty or invalid dates or hidden status
+        if (!ama.date || ama.status === 'hidden') continue;
         
         const amaDateTime = new Date(ama.date);
         if (isNaN(amaDateTime.getTime())) continue;

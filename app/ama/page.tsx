@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 async function getAMAs() {
   try {
     await connectDB();
+    // Exclude hidden AMAs from public listing
     const [liveAMAs, upcomingAMAs, completedAMAs] = await Promise.all([
       AMA.find({ status: 'live' }).sort({ date: 1 }).lean(),
       AMA.find({ status: 'upcoming' }).sort({ date: 1 }).limit(100).lean(),

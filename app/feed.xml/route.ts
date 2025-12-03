@@ -35,13 +35,13 @@ export async function GET() {
     const baseUrl = 'https://cryptohoru.com';
     const now = new Date().toISOString();
     
-    // Fetch latest content
+    // Fetch latest content (excluding hidden items)
     const [blogs, news, airdrops, amas, giveaways] = await Promise.all([
       Blog.find({ published: true }).sort({ createdAt: -1 }).limit(20).lean(),
       News.find({ published: true }).sort({ createdAt: -1 }).limit(20).lean(),
-      Airdrop.find({}).sort({ createdAt: -1 }).limit(20).lean(),
-      AMA.find({}).sort({ createdAt: -1 }).limit(20).lean(),
-      Giveaway.find({}).sort({ createdAt: -1 }).limit(20).lean(),
+      Airdrop.find({ status: { $ne: 'hidden' } }).sort({ createdAt: -1 }).limit(20).lean(),
+      AMA.find({ status: { $ne: 'hidden' } }).sort({ createdAt: -1 }).limit(20).lean(),
+      Giveaway.find({ status: { $ne: 'hidden' } }).sort({ createdAt: -1 }).limit(20).lean(),
     ]);
 
     // Build RSS items

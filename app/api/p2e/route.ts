@@ -12,8 +12,15 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
+    const includeHidden = searchParams.get('includeHidden') === 'true';
     
-    const filter = status ? { status } : {};
+    let filter: any = {};
+    if (status) {
+      filter.status = status;
+    } else if (!includeHidden) {
+      // Exclude hidden items from public listing
+      filter.status = { $ne: 'hidden' };
+    }
     const games = await P2EGame.find(filter).sort({ createdAt: -1 });
     
     return NextResponse.json({ success: true, data: games });
@@ -31,17 +38,13 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     
-    // Generate a temporary ID for slug generation
-    const tempId = new mongoose.Types.ObjectId();
-    
-    // Generate SEO-friendly slug from name
-    if (!body.slug && body.name) {
-      body.slug = generateUniqueSlug(body.name, tempId.toString());
-    }
-    
-    // Create with the pre-generated ID
-    body._id = tempId;
+    // Create game first to get the ID
     const game = await P2EGame.create(body);
+    
+    // Generate and save slug using title and ID
+    const slug = generateUniqueSlug(body.title, game._id.toString());
+    game.slug = slug;
+    await game.save();
     
     return NextResponse.json(
       { success: true, data: game },

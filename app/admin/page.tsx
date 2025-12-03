@@ -34,7 +34,8 @@ export default function AdminPage() {
       const results = await Promise.all(
         endpoints.map(async (endpoint) => {
           try {
-            const res = await fetch(`/api/${endpoint}`, { cache: 'no-store' });
+            // Include hidden items for admin
+            const res = await fetch(`/api/${endpoint}?includeHidden=true`, { cache: 'no-store' });
             if (res.ok) {
               const data = await res.json();
               return { endpoint, count: data.data?.length || 0 };
@@ -60,7 +61,8 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const timestamp = new Date().getTime();
-      const res = await fetch(`/api/${type}?t=${timestamp}`, { cache: 'no-store' });
+      // Include hidden items for admin
+      const res = await fetch(`/api/${type}?includeHidden=true&t=${timestamp}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         // Remove duplicates on client side as backup
@@ -309,9 +311,17 @@ export default function AdminPage() {
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                               : item.status === 'upcoming' || item.status === 'coming-soon'
                               ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                              : item.status === 'hidden'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}>
-                            {item.status}
+                            {item.status === 'hidden' ? '🔒 Hidden (Draft)' : item.status}
+                          </span>
+                        )}
+                        {/* Show unpublished for blog/news */}
+                        {item.published === false && (
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                            🔒 Unpublished (Draft)
                           </span>
                         )}
                         {item.createdAt && (

@@ -195,6 +195,22 @@ export default function NewP2EPage() {
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
                 placeholder="https://..."
               />
+              {formData.image && (
+                <div className="mt-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Image Preview:</p>
+                  <img 
+                    src={formData.image} 
+                    alt="Preview" 
+                    className="max-w-xs rounded-lg border border-gray-300 dark:border-gray-600"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                💡 Tip: You can also add images in the description using Markdown: ![alt text](image-url)
+              </p>
             </div>
 
             <div>
@@ -211,6 +227,7 @@ export default function NewP2EPage() {
                 <option value="active">Active</option>
                 <option value="coming-soon">Coming Soon</option>
                 <option value="inactive">Inactive</option>
+                <option value="hidden">Hidden (Draft)</option>
               </select>
             </div>
 

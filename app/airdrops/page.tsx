@@ -49,7 +49,8 @@ export const metadata: Metadata = {
 async function getAirdrops(): Promise<Airdrop[]> {
   try {
     await connectDB();
-    const airdrops = await AirdropModel.find({}).sort({ createdAt: -1 }).lean();
+    // Exclude hidden airdrops from public listing
+    const airdrops = await AirdropModel.find({ status: { $ne: 'hidden' } }).sort({ createdAt: -1 }).lean();
     return JSON.parse(JSON.stringify(airdrops));
   } catch (error) {
     console.error('Error fetching airdrops:', error);

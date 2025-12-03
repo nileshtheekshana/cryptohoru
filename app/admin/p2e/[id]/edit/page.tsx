@@ -211,18 +211,32 @@ export default function EditP2EPage({
               </div>
             </div>
 
-            <div>
-              <label className="block text-gray-300 mb-2">
-                Potential Earnings
-              </label>
-              <input
-                type="text"
-                name="earnings"
-                value={formData.earnings}
-                onChange={handleChange}
-                placeholder="e.g., $50-200/month"
-                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-gray-300 mb-2">Token Symbol</label>
+                <input
+                  type="text"
+                  name="tokenSymbol"
+                  value={formData.tokenSymbol}
+                  onChange={handleChange}
+                  placeholder="e.g., GAME, AXS"
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">
+                  Potential Earnings
+                </label>
+                <input
+                  type="text"
+                  name="earnings"
+                  value={formData.earnings}
+                  onChange={handleChange}
+                  placeholder="e.g., $50-200/month"
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             <div>
@@ -259,6 +273,22 @@ export default function EditP2EPage({
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {formData.image && (
+                <div className="mt-3">
+                  <p className="text-sm text-gray-400 mb-2">Image Preview:</p>
+                  <img 
+                    src={formData.image} 
+                    alt="Preview" 
+                    className="max-w-xs rounded-lg border border-gray-600"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mt-2">
+                💡 Tip: You can add images in the description using Markdown: ![alt text](image-url)
+              </p>
             </div>
 
             <div>
@@ -271,8 +301,9 @@ export default function EditP2EPage({
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="active">Active</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="ended">Ended</option>
+                <option value="coming-soon">Coming Soon</option>
+                <option value="inactive">Inactive</option>
+                <option value="hidden">Hidden (Draft)</option>
               </select>
             </div>
 

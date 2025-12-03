@@ -225,6 +225,7 @@ export default function NewGiveawayPage() {
               >
                 <option value="active">Active</option>
                 <option value="ended">Ended</option>
+                <option value="hidden">Hidden (Draft)</option>
               </select>
             </div>
 

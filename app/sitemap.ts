@@ -8,7 +8,7 @@ export const revalidate = 3600; // Revalidate every hour
 async function getAirdrops() {
   try {
     await connectDB();
-    const airdrops = await Airdrop.find({}).select('_id slug updatedAt').lean();
+    const airdrops = await Airdrop.find({ status: { $ne: 'hidden' } }).select('_id slug updatedAt').lean();
     return airdrops.map((a: any) => ({
       id: a.slug || a._id.toString(),
       updatedAt: a.updatedAt || new Date(),
@@ -21,7 +21,7 @@ async function getAirdrops() {
 async function getAMAs() {
   try {
     await connectDB();
-    const amas = await AMA.find({}).select('_id slug updatedAt').lean();
+    const amas = await AMA.find({ status: { $ne: 'hidden' } }).select('_id slug updatedAt').lean();
     return amas.map((a: any) => ({
       id: a.slug || a._id.toString(),
       updatedAt: a.updatedAt || new Date(),
@@ -34,7 +34,7 @@ async function getAMAs() {
 async function getGiveaways() {
   try {
     await connectDB();
-    const giveaways = await Giveaway.find({}).select('_id slug updatedAt').lean();
+    const giveaways = await Giveaway.find({ status: { $ne: 'hidden' } }).select('_id slug updatedAt').lean();
     return giveaways.map((g: any) => ({
       id: g.slug || g._id.toString(),
       updatedAt: g.updatedAt || new Date(),
@@ -73,7 +73,7 @@ async function getNews() {
 async function getP2EGames() {
   try {
     await connectDB();
-    const games = await P2EGame.find({}).select('_id slug updatedAt').lean();
+    const games = await P2EGame.find({ status: { $ne: 'hidden' } }).select('_id slug updatedAt').lean();
     return games.map((g: any) => ({
       id: g.slug || g._id.toString(),
       updatedAt: g.updatedAt || new Date(),
