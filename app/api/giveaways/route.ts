@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Giveaway } from '@/models';
+import { generateUniqueSlug } from '@/lib/generateSlug';
 
 export const runtime = 'nodejs';
 
@@ -67,6 +68,11 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     const giveaway = await Giveaway.create(body);
+    
+    // Generate and save slug
+    const slug = generateUniqueSlug(body.title, giveaway._id.toString());
+    giveaway.slug = slug;
+    await giveaway.save();
     
     return NextResponse.json(
       { success: true, data: giveaway },

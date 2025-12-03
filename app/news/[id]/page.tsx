@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaUser, FaCalendar, FaTags, FaNewspaper, FaExternalLinkAlt } from 'react-icons/fa';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 async function getNews(id: string) {
   try {
@@ -21,6 +23,46 @@ async function getNews(id: string) {
     console.error('Error fetching news:', error);
     return null;
   }
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const article = await getNews(params.id);
+  
+  if (!article) {
+    return {
+      title: 'News Not Found',
+      description: 'The requested news article could not be found.',
+    };
+  }
+
+  const description = stripMarkdown(article.content).substring(0, 160);
+  
+  return {
+    title: article.title,
+    description: description,
+    keywords: [
+      article.title,
+      article.category || 'crypto news',
+      'cryptocurrency news',
+      'blockchain news',
+      ...(article.tags || []),
+    ],
+    authors: [{ name: article.author || 'CryptoHoru' }],
+    openGraph: {
+      title: article.title,
+      description: description,
+      images: article.image || article.imageUrl ? [article.image || article.imageUrl] : ['/og-image.png'],
+      type: 'article',
+      publishedTime: article.createdAt,
+      modifiedTime: article.updatedAt,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: description,
+      images: article.image || article.imageUrl ? [article.image || article.imageUrl] : ['/og-image.png'],
+    },
+  };
 }
 
 export default async function NewsDetailPage({ params }: { params: { id: string } }) {

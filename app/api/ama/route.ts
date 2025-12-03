@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { AMA } from '@/models';
+import { generateUniqueSlug } from '@/lib/generateSlug';
 
 export const runtime = 'nodejs';
 
@@ -129,6 +130,11 @@ export async function POST(request: NextRequest) {
     }
     
     const ama = await AMA.create(body);
+    
+    // Generate and save slug
+    const slug = generateUniqueSlug(body.title, ama._id.toString());
+    ama.slug = slug;
+    await ama.save();
     
     return NextResponse.json(
       { success: true, data: ama },

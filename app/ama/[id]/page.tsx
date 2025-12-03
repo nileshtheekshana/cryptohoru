@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaUsers, FaCalendar, FaLink, FaExternalLinkAlt } from 'react-icons/fa';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import AMADates from '@/components/AMADates';
+import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 async function getAMA(id: string) {
   try {
@@ -21,6 +24,45 @@ async function getAMA(id: string) {
     console.error('Error fetching AMA:', error);
     return null;
   }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const ama = await getAMA(id);
+  
+  if (!ama) {
+    return {
+      title: 'AMA Not Found',
+      description: 'The requested AMA session could not be found.',
+    };
+  }
+
+  const description = stripMarkdown(ama.description).substring(0, 160);
+  
+  return {
+    title: `${ama.title} - AMA with ${ama.project}`,
+    description: description || `Join the AMA session with ${ama.project}. ${ama.host ? `Hosted by ${ama.host}.` : ''}`,
+    keywords: [
+      ama.title,
+      ama.project,
+      'crypto AMA',
+      'ask me anything',
+      ama.platform || 'live session',
+      ...(ama.tags || []),
+    ],
+    openGraph: {
+      title: `${ama.title} - Crypto AMA`,
+      description: description,
+      images: ama.image ? [ama.image] : ['/og-image.png'],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${ama.title} - AMA with ${ama.project}`,
+      description: description,
+      images: ama.image ? [ama.image] : ['/og-image.png'],
+    },
+  };
 }
 
 export default async function AMADetailPage({ params }: { params: { id: string } }) {
@@ -112,17 +154,7 @@ export default async function AMADetailPage({ params }: { params: { id: string }
                   </div>
                 )}
 
-                {ama.date && (
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Date & Time</p>
-                    <div className="flex items-center gap-2">
-                      <FaCalendar className="text-gray-600 dark:text-gray-400" />
-                      <span className="text-gray-900 dark:text-white">
-                        {new Date(ama.date).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <AMADates date={ama.date} />
 
                 {ama.platform && (
                   <div>

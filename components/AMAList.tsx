@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FaCalendar, FaUsers, FaLink, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 interface AMA {
   _id: string;
+  slug?: string;
   title: string;
   description: string;
   image?: string;
@@ -99,7 +101,7 @@ export default function AMAList() {
       </div>
       <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{ama.title}</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{ama.description}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{stripMarkdown(ama.description)}</p>
         
         <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
           <div className="flex items-center gap-2">
@@ -129,7 +131,7 @@ export default function AMAList() {
         </div>
 
         <Link
-          href={`/ama/${ama._id}`}
+          href={`/ama/${ama.slug || ama._id}`}
           className="mt-auto block text-center bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition"
         >
           View Details

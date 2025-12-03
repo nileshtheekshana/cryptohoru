@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthProvider from "@/components/AuthProvider";
+import { TimezoneProvider } from "@/components/TimezoneProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -86,6 +87,17 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/site.webmanifest',
+  alternates: {
+    canonical: 'https://cryptohoru.com',
+    types: {
+      'application/rss+xml': 'https://cryptohoru.com/feed.xml',
+    },
+  },
+  verification: {
+    google: 'your-google-verification-code', // Replace with your Google Search Console verification code
+    // yandex: 'your-yandex-verification-code',
+    // bing: 'your-bing-verification-code',
+  },
 };
 
 export default function RootLayout({
@@ -119,11 +131,13 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <AuthProvider>
-          <Navbar />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Footer />
+          <TimezoneProvider>
+            <Navbar />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </TimezoneProvider>
         </AuthProvider>
       </body>
     </html>

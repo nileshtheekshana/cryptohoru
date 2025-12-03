@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaUser, FaCalendar, FaTags, FaBlog } from 'react-icons/fa';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 async function getBlog(id: string) {
   try {
@@ -21,6 +23,47 @@ async function getBlog(id: string) {
     console.error('Error fetching blog:', error);
     return null;
   }
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const post = await getBlog(params.id);
+  
+  if (!post) {
+    return {
+      title: 'Blog Post Not Found',
+      description: 'The requested blog post could not be found.',
+    };
+  }
+
+  const description = post.excerpt || stripMarkdown(post.content).substring(0, 160);
+  
+  return {
+    title: post.title,
+    description: description,
+    keywords: [
+      post.title,
+      post.category || 'crypto',
+      'crypto blog',
+      'blockchain',
+      ...(post.tags || []),
+    ],
+    authors: [{ name: post.author || 'CryptoHoru' }],
+    openGraph: {
+      title: post.title,
+      description: description,
+      images: post.image || post.imageUrl ? [post.image || post.imageUrl] : ['/og-image.png'],
+      type: 'article',
+      publishedTime: post.createdAt,
+      modifiedTime: post.updatedAt,
+      authors: [post.author || 'CryptoHoru'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: description,
+      images: post.image || post.imageUrl ? [post.image || post.imageUrl] : ['/og-image.png'],
+    },
+  };
 }
 
 export default async function BlogDetailPage({ params }: { params: { id: string } }) {

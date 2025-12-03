@@ -7,6 +7,8 @@ const TaskSchema = new Schema({
   type: { type: String, enum: ['social', 'transaction', 'verification', 'quiz', 'other'], default: 'other' },
   reward: { type: String },
   link: { type: String },
+  status: { type: String, enum: ['ongoing', 'ended'], default: 'ongoing' },
+  endDate: { type: Date },
   isCompleted: { type: Boolean, default: false },
   order: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
@@ -15,6 +17,7 @@ const TaskSchema = new Schema({
 // Airdrop Schema
 const AirdropSchema = new Schema({
   title: { type: String, required: true },
+  slug: { type: String, unique: true, sparse: true },
   description: { type: String, required: true },
   image: { type: String },
   category: { type: String, default: 'Airdrop' },
@@ -37,6 +40,7 @@ const AirdropSchema = new Schema({
 // AMA Schema
 const AMASchema = new Schema({
   title: { type: String, required: true },
+  slug: { type: String, unique: true, sparse: true },
   description: { type: String, required: true },
   image: { type: String },
   project: { type: String, required: true },
@@ -54,6 +58,7 @@ const AMASchema = new Schema({
 // Giveaway Schema
 const GiveawaySchema = new Schema({
   title: { type: String, required: true },
+  slug: { type: String, unique: true, sparse: true },
   description: { type: String, required: true },
   image: { type: String },
   prize: { type: String, required: true },
@@ -71,7 +76,7 @@ const GiveawaySchema = new Schema({
 // Blog Schema
 const BlogSchema = new Schema({
   title: { type: String, required: true },
-  slug: { type: String },
+  slug: { type: String, unique: true, sparse: true },
   excerpt: { type: String },
   content: { type: String, required: true },
   image: { type: String },
@@ -88,6 +93,7 @@ const BlogSchema = new Schema({
 // P2E Game Schema
 const P2EGameSchema = new Schema({
   title: { type: String, required: true },
+  slug: { type: String, unique: true, sparse: true },
   description: { type: String, required: true },
   imageUrl: { type: String },
   image: { type: String },
@@ -119,6 +125,7 @@ const P2EGameSchema = new Schema({
 // Crypto News Schema
 const NewsSchema = new Schema({
   title: { type: String, required: true },
+  slug: { type: String, unique: true, sparse: true },
   content: { type: String, required: true },
   image: { type: String },
   imageUrl: { type: String },
@@ -140,6 +147,7 @@ const UserSchema = new Schema({
   password: { type: String },
   image: { type: String },
   role: { type: String, enum: ['admin', 'user'], default: 'user' },
+  timezone: { type: String, default: 'Asia/Kolkata' }, // User's preferred timezone
   emailVerified: { type: Date },
   completedTasks: [{
     airdropId: { type: Schema.Types.ObjectId, ref: 'Airdrop' },
@@ -148,6 +156,11 @@ const UserSchema = new Schema({
   }],
   completedGiveawayTasks: [{
     giveawayId: { type: Schema.Types.ObjectId, ref: 'Giveaway' },
+    taskId: { type: String },
+    completedAt: { type: Date, default: Date.now },
+  }],
+  completedP2ETasks: [{
+    gameId: { type: Schema.Types.ObjectId, ref: 'P2EGame' },
     taskId: { type: String },
     completedAt: { type: Date, default: Date.now },
   }],

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { AMA } from '@/models';
+import mongoose from 'mongoose';
+import { generateUniqueSlug } from '@/lib/generateSlug';
 
 export const runtime = 'nodejs';
 
@@ -25,6 +27,15 @@ function calculateAMAStatus(amaDate: Date): string {
   }
 }
 
+// Helper to find by ID or slug
+async function findAMA(idOrSlug: string) {
+  if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+    const byId = await AMA.findById(idOrSlug);
+    if (byId) return byId;
+  }
+  return await AMA.findOne({ slug: idOrSlug });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -32,7 +43,7 @@ export async function GET(
   try {
     await connectDB();
     
-    const ama = await AMA.findById(params.id);
+    const ama = await findAMA(params.id);
     
     if (!ama) {
       return NextResponse.json(
@@ -58,23 +69,29 @@ export async function PUT(
     await connectDB();
     const body = await request.json();
     
-    // Auto-calculate status based on date
-    if (body.date) {
-      body.status = calculateAMAStatus(new Date(body.date));
-    }
-    
-    const ama = await AMA.findByIdAndUpdate(
-      params.id,
-      body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!ama) {
+    const existing = await findAMA(params.id);
+    if (!existing) {
       return NextResponse.json(
         { success: false, error: 'AMA not found' },
         { status: 404 }
       );
     }
+    
+    // Auto-calculate status based on date
+    if (body.date) {
+      body.status = calculateAMAStatus(new Date(body.date));
+    }
+    
+    // Update slug if title changed
+    if (body.title && body.title !== existing.title) {
+      body.slug = generateUniqueSlug(body.title, existing._id.toString());
+    }
+    
+    const ama = await AMA.findByIdAndUpdate(
+      existing._id,
+      body,
+      { new: true, runValidators: true }
+    );
     
     return NextResponse.json({ success: true, data: ama });
   } catch (error: any) {
@@ -92,16 +109,17 @@ export async function DELETE(
   try {
     await connectDB();
     
-    const ama = await AMA.findByIdAndDelete(params.id);
-    
-    if (!ama) {
+    const existing = await findAMA(params.id);
+    if (!existing) {
       return NextResponse.json(
         { success: false, error: 'AMA not found' },
         { status: 404 }
       );
     }
     
-    return NextResponse.json({ success: true, data: ama });
+    await AMA.findByIdAndDelete(existing._id);
+    
+    return NextResponse.json({ success: true, data: existing });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message },

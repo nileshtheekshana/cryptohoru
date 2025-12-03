@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { FaNewspaper, FaUser, FaCalendar, FaTags } from 'react-icons/fa';
 import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "Crypto News - Latest Cryptocurrency & Blockchain Updates",
@@ -80,7 +83,7 @@ export default async function NewsPage() {
                     {article.title}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
-                    {article.content}
+                    {stripMarkdown(article.content)}
                   </p>
                   
                   <div className="space-y-2 mb-4">
@@ -113,7 +116,7 @@ export default async function NewsPage() {
                   </div>
                   
                   <Link
-                    href={`/news/${article._id}`}
+                    href={`/news/${article.slug || article._id}`}
                     className="block w-full bg-red-600 text-white py-2 rounded-lg font-semibold text-center hover:bg-red-700 transition"
                   >
                     View Details

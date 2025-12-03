@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { FaBlog, FaUser, FaCalendar, FaTags } from 'react-icons/fa';
 import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "Crypto Blog - Guides, Tutorials & Industry Insights",
@@ -80,7 +83,7 @@ export default async function BlogPage() {
                     {post.title}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
-                    {post.content}
+                    {stripMarkdown(post.content)}
                   </p>
                   
                   <div className="space-y-2 mb-4">
@@ -113,7 +116,7 @@ export default async function BlogPage() {
                   </div>
                   
                   <Link
-                    href={`/blog/${post._id}`}
+                    href={`/blog/${post.slug || post._id}`}
                     className="block w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-center hover:bg-indigo-700 transition"
                   >
                     View Details

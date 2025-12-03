@@ -34,6 +34,7 @@ export default function EditAMAPage({
     project: "",
     host: "",
     date: "",
+    time: "",
     platform: "",
     link: "",
     rewards: "",
@@ -56,6 +57,10 @@ export default function EditAMAPage({
       // Extract date and time from datetime
       const dateObj = new Date(data.date);
       const dateStr = dateObj.toISOString().split('T')[0];
+      // Extract time in HH:MM format (local time)
+      const hours = dateObj.getHours().toString().padStart(2, '0');
+      const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
       
       setFormData({
         title: data.title || "",
@@ -63,6 +68,7 @@ export default function EditAMAPage({
         project: data.project || "",
         host: data.host || "",
         date: dateStr,
+        time: timeStr,
         platform: data.platform || "",
         link: data.link || "",
         rewards: data.rewards || "",
@@ -82,10 +88,20 @@ export default function EditAMAPage({
     setSubmitting(true);
 
     try {
+      // Combine date and time into a single ISO datetime string
+      const combinedDateTime = formData.date && formData.time 
+        ? new Date(`${formData.date}T${formData.time}:00`).toISOString()
+        : formData.date;
+
+      const submitData = {
+        ...formData,
+        date: combinedDateTime,
+      };
+
       const response = await fetch(`/api/ama/${resolvedParams.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) throw new Error("Failed to update AMA");
@@ -196,6 +212,18 @@ export default function EditAMAPage({
                   type="date"
                   name="date"
                   value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Time *</label>
+                <input
+                  type="time"
+                  name="time"
+                  value={formData.time}
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

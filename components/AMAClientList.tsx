@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaCalendar, FaUsers, FaLink, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaCalendar, FaUsers, FaLink, FaChevronLeft, FaChevronRight, FaGlobe } from 'react-icons/fa';
+import { useTimezone } from './TimezoneProvider';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 interface AMA {
   _id: string;
+  slug?: string;
   title: string;
   description: string;
   image?: string;
@@ -26,31 +29,13 @@ export default function AMAClientList({
   initialUpcomingAMAs, 
   initialCompletedAMAs 
 }: AMAClientListProps) {
-  const [timezone, setTimezone] = useState<string>('UTC');
+  const { formatDateTime, timezoneLabel } = useTimezone();
   const [liveAMAs, setLiveAMAs] = useState<AMA[]>(initialLiveAMAs);
   const [upcomingAMAs, setUpcomingAMAs] = useState<AMA[]>(initialUpcomingAMAs);
   const [endedAMAs, setEndedAMAs] = useState<AMA[]>(initialCompletedAMAs);
   const [endedPage, setEndedPage] = useState(1);
   const [endedTotal, setEndedTotal] = useState(initialCompletedAMAs.length);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    // Detect timezone
-    async function detectTimezone() {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          const data = await res.json();
-          setTimezone(data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
-        } else {
-          setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-        }
-      } catch (error) {
-        setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-      }
-    }
-    detectTimezone();
-  }, []);
 
   useEffect(() => {
     // Only fetch when page changes (for pagination)
@@ -73,19 +58,6 @@ export default function AMAClientList({
     fetchEndedAMAs();
   }, [endedPage]);
 
-  const formatDateInTimezone = (date: string) => {
-    const dateObj = new Date(date);
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }).format(dateObj);
-  };
-
   const renderAMACard = (ama: AMA) => (
     <div key={ama._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition">
       <div className="w-full h-48 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
@@ -101,7 +73,7 @@ export default function AMAClientList({
       </div>
       <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{ama.title}</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{ama.description}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{stripMarkdown(ama.description)}</p>
         
         <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
           <div className="flex items-center gap-2">
@@ -110,7 +82,7 @@ export default function AMAClientList({
           </div>
           <div className="flex items-center gap-2">
             <FaCalendar className="text-purple-500 flex-shrink-0" />
-            <span className="truncate text-xs">{formatDateInTimezone(ama.date)}</span>
+            <span className="truncate text-xs">{formatDateTime(ama.date)}</span>
           </div>
           {ama.platform && (
             <div className="flex items-center gap-2">
@@ -131,7 +103,7 @@ export default function AMAClientList({
         </div>
 
         <Link
-          href={`/ama/${ama._id}`}
+          href={`/ama/${ama.slug || ama._id}`}
           className="mt-auto block text-center bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition"
         >
           View Details
@@ -222,8 +194,11 @@ export default function AMAClientList({
       )}
 
       {/* Timezone Display */}
-      <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-        Times shown in your timezone: {timezone}
+      <div className="mt-8 text-center">
+        <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full">
+          <FaGlobe className="text-blue-500" />
+          <span>Times shown in: <strong>{timezoneLabel}</strong></span>
+        </div>
       </div>
     </>
   );

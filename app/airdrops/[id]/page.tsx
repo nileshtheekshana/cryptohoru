@@ -4,8 +4,11 @@ import { FaArrowLeft, FaCalendar, FaGlobe, FaTwitter, FaTelegram, FaDiscord, FaC
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import AirdropTasks from '@/components/AirdropTasks';
 import FollowAirdropButton from '@/components/FollowAirdropButton';
+import AirdropDates from '@/components/AirdropDates';
 import connectDB from '@/lib/mongodb';
 import { Airdrop } from '@/models';
+import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 async function getAirdrop(id: string) {
   try {
@@ -16,6 +19,44 @@ async function getAirdrop(id: string) {
     console.error('Error fetching airdrop:', error);
     return null;
   }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const airdrop = await getAirdrop(id);
+  
+  if (!airdrop) {
+    return {
+      title: 'Airdrop Not Found',
+      description: 'The requested airdrop could not be found.',
+    };
+  }
+
+  const description = stripMarkdown(airdrop.description).substring(0, 160);
+  
+  return {
+    title: `${airdrop.title} - Crypto Airdrop`,
+    description: description || `Participate in ${airdrop.title} airdrop and earn free crypto rewards.`,
+    keywords: [
+      airdrop.title,
+      'crypto airdrop',
+      'free crypto',
+      airdrop.blockchain || 'blockchain',
+      ...(airdrop.tags || []),
+    ],
+    openGraph: {
+      title: `${airdrop.title} - Crypto Airdrop`,
+      description: description,
+      images: airdrop.image ? [airdrop.image] : ['/og-image.png'],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${airdrop.title} - Crypto Airdrop`,
+      description: description,
+      images: airdrop.image ? [airdrop.image] : ['/og-image.png'],
+    },
+  };
 }
 
 export default async function AirdropDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -143,25 +184,7 @@ export default async function AirdropDetailsPage({ params }: { params: Promise<{
                 )}
 
                 {/* Dates */}
-                {airdrop.startDate && (
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Start Date</p>
-                    <div className="flex items-center gap-2 text-gray-900 dark:text-white">
-                      <FaCalendar />
-                      <span>{new Date(airdrop.startDate).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                )}
-
-                {airdrop.endDate && (
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">End Date</p>
-                    <div className="flex items-center gap-2 text-gray-900 dark:text-white">
-                      <FaCalendar />
-                      <span>{new Date(airdrop.endDate).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                )}
+                <AirdropDates startDate={airdrop.startDate} endDate={airdrop.endDate} />
               </div>
             </div>
 

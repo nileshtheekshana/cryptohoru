@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaGamepad, FaCoins, FaGlobe, FaExternalLinkAlt } from 'react-icons/fa';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import P2ETasks from '@/components/P2ETasks';
+import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 async function getP2EGame(id: string) {
   try {
@@ -21,6 +24,46 @@ async function getP2EGame(id: string) {
     console.error('Error fetching P2E game:', error);
     return null;
   }
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const game = await getP2EGame(params.id);
+  
+  if (!game) {
+    return {
+      title: 'Game Not Found',
+      description: 'The requested P2E game could not be found.',
+    };
+  }
+
+  const description = stripMarkdown(game.description).substring(0, 160);
+  
+  return {
+    title: `${game.title} - Play to Earn Game`,
+    description: description || `Play ${game.title} and earn ${game.tokenSymbol || 'crypto'}. ${game.earnings || ''}`,
+    keywords: [
+      game.title,
+      'play to earn',
+      'P2E game',
+      'crypto game',
+      game.blockchain || 'blockchain',
+      game.tokenSymbol || 'crypto',
+      game.gameType || 'gaming',
+      ...(game.tags || []),
+    ],
+    openGraph: {
+      title: `${game.title} - P2E Game`,
+      description: description,
+      images: game.imageUrl || game.image ? [game.imageUrl || game.image] : ['/og-image.png'],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${game.title} - Play to Earn`,
+      description: description,
+      images: game.imageUrl || game.image ? [game.imageUrl || game.image] : ['/og-image.png'],
+    },
+  };
 }
 
 export default async function P2EDetailPage({ params }: { params: { id: string } }) {
@@ -86,6 +129,11 @@ export default async function P2EDetailPage({ params }: { params: { id: string }
                 )}
               </div>
             </div>
+
+            {/* Tasks Section */}
+            {game.tasks && game.tasks.length > 0 && (
+              <P2ETasks gameId={game._id} tasks={game.tasks} />
+            )}
           </div>
 
           <div className="space-y-6">

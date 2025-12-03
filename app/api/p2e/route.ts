@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { P2EGame } from '@/models';
+import { generateUniqueSlug } from '@/lib/generateSlug';
+import mongoose from 'mongoose';
 
 export const runtime = 'nodejs';
 
@@ -28,6 +30,17 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
+    
+    // Generate a temporary ID for slug generation
+    const tempId = new mongoose.Types.ObjectId();
+    
+    // Generate SEO-friendly slug from name
+    if (!body.slug && body.name) {
+      body.slug = generateUniqueSlug(body.name, tempId.toString());
+    }
+    
+    // Create with the pre-generated ID
+    body._id = tempId;
     const game = await P2EGame.create(body);
     
     return NextResponse.json(

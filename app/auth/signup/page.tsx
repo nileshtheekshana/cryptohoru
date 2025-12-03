@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -10,12 +10,44 @@ export default function SignUpPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [detectedTimezone, setDetectedTimezone] = useState('Asia/Kolkata');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
+
+  // Detect timezone on mount
+  useEffect(() => {
+    const detectTimezone = async () => {
+      try {
+        // Try IP-based detection first
+        const res = await fetch('https://ipapi.co/json/', { 
+          signal: AbortSignal.timeout(3000) 
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.timezone) {
+            setDetectedTimezone(data.timezone);
+            return;
+          }
+        }
+      } catch {
+        // Fallback to browser
+      }
+      // Fallback to browser timezone
+      try {
+        const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (browserTz) {
+          setDetectedTimezone(browserTz);
+        }
+      } catch {
+        // Keep default
+      }
+    };
+    detectTimezone();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +74,7 @@ export default function SignUpPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          timezone: detectedTimezone, // Send detected timezone
         }),
       });
 
@@ -52,6 +85,9 @@ export default function SignUpPage() {
         setLoading(false);
         return;
       }
+
+      // Save timezone to localStorage
+      localStorage.setItem('cryptohoru_timezone', detectedTimezone);
 
       // Auto sign in after registration
       const signInResult = await signIn('credentials', {

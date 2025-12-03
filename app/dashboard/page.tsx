@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaCheckCircle, FaTimes, FaClock, FaTasks, FaCoins, FaTrophy, FaCircle } from 'react-icons/fa';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 interface CompletedTask {
   airdropId: string;
@@ -282,7 +283,7 @@ export default function DashboardPage() {
                           {airdrop.title}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-2">
-                          {airdrop.description}
+                          {stripMarkdown(airdrop.description)}
                         </p>
                         <div className="flex items-center gap-4 text-sm">
                           <span className="text-green-600 dark:text-green-400 font-semibold">

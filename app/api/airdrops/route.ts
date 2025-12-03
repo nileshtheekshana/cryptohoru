@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Airdrop } from '@/models';
+import { generateUniqueSlug } from '@/lib/generateSlug';
 
 export const runtime = 'nodejs';
 
@@ -29,7 +30,14 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
+    
+    // Create airdrop first to get the ID
     const airdrop = await Airdrop.create(body);
+    
+    // Generate and save slug using title and ID
+    const slug = generateUniqueSlug(body.title, airdrop._id.toString());
+    airdrop.slug = slug;
+    await airdrop.save();
     
     return NextResponse.json(
       { success: true, data: airdrop },

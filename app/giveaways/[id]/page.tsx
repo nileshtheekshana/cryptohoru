@@ -3,8 +3,11 @@ import Link from 'next/link';
 import { FaArrowLeft, FaGift, FaCalendar, FaCheckCircle, FaExternalLinkAlt } from 'react-icons/fa';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import GiveawayTasks from '@/components/GiveawayTasks';
+import GiveawayDates from '@/components/GiveawayDates';
 import connectDB from '@/lib/mongodb';
 import { Giveaway } from '@/models';
+import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 async function getGiveaway(id: string) {
   try {
@@ -15,6 +18,44 @@ async function getGiveaway(id: string) {
     console.error('Error fetching giveaway:', error);
     return null;
   }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const giveaway = await getGiveaway(id);
+  
+  if (!giveaway) {
+    return {
+      title: 'Giveaway Not Found',
+      description: 'The requested giveaway could not be found.',
+    };
+  }
+
+  const description = stripMarkdown(giveaway.description).substring(0, 160);
+  
+  return {
+    title: `${giveaway.title} - Win ${giveaway.prize}`,
+    description: description || `Participate in ${giveaway.title} and win ${giveaway.prize}!`,
+    keywords: [
+      giveaway.title,
+      'crypto giveaway',
+      'win crypto',
+      giveaway.prize,
+      ...(giveaway.tags || []),
+    ],
+    openGraph: {
+      title: `${giveaway.title} - Crypto Giveaway`,
+      description: description,
+      images: giveaway.imageUrl || giveaway.image ? [giveaway.imageUrl || giveaway.image] : ['/og-image.png'],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${giveaway.title} - Win ${giveaway.prize}`,
+      description: description,
+      images: giveaway.imageUrl || giveaway.image ? [giveaway.imageUrl || giveaway.image] : ['/og-image.png'],
+    },
+  };
 }
 
 export default async function GiveawayDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -147,17 +188,7 @@ export default async function GiveawayDetailPage({ params }: { params: Promise<{
                   </div>
                 )}
 
-                {giveaway.endDate && (
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">End Date</p>
-                    <div className="flex items-center gap-2">
-                      <FaCalendar className="text-gray-600 dark:text-gray-400" />
-                      <span className="text-gray-900 dark:text-white">
-                        {new Date(giveaway.endDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <GiveawayDates endDate={giveaway.endDate} />
               </div>
             </div>
           </div>

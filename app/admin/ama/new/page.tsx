@@ -36,10 +36,21 @@ export default function NewAMAPage() {
     setLoading(true);
 
     try {
+      // Combine date and time into a single ISO datetime string
+      // The date and time are in admin's local timezone, we store as UTC
+      const combinedDateTime = formData.date && formData.time 
+        ? new Date(`${formData.date}T${formData.time}:00`).toISOString()
+        : formData.date;
+
+      const submitData = {
+        ...formData,
+        date: combinedDateTime,
+      };
+
       const response = await fetch('/api/ama', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (response.ok) {

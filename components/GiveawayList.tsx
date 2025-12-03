@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaGift, FaCalendar, FaCheckCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaGift, FaCalendar, FaCheckCircle, FaChevronLeft, FaChevronRight, FaGlobe } from 'react-icons/fa';
+import { useTimezone } from './TimezoneProvider';
+import { stripMarkdown } from '@/lib/stripMarkdown';
 
 interface Giveaway {
   _id: string;
+  slug?: string;
   title: string;
   description: string;
   image?: string;
@@ -17,31 +20,13 @@ interface Giveaway {
 }
 
 export default function GiveawayList() {
-  const [timezone, setTimezone] = useState<string>('UTC');
+  const { formatDateTime, timezoneLabel } = useTimezone();
   const [liveGiveaways, setLiveGiveaways] = useState<Giveaway[]>([]);
   const [upcomingGiveaways, setUpcomingGiveaways] = useState<Giveaway[]>([]);
   const [endedGiveaways, setEndedGiveaways] = useState<Giveaway[]>([]);
   const [endedPage, setEndedPage] = useState(1);
   const [endedTotal, setEndedTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Detect timezone
-    async function detectTimezone() {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          const data = await res.json();
-          setTimezone(data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
-        } else {
-          setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-        }
-      } catch (error) {
-        setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-      }
-    }
-    detectTimezone();
-  }, []);
 
   useEffect(() => {
     async function fetchGiveaways() {
@@ -70,19 +55,6 @@ export default function GiveawayList() {
 
     fetchGiveaways();
   }, [endedPage]);
-
-  const formatDateInTimezone = (date: string) => {
-    const dateObj = new Date(date);
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }).format(dateObj);
-  };
 
   const getGiveawayStatus = (endDate: string): 'live' | 'upcoming' | 'ended' => {
     const now = new Date();
@@ -117,7 +89,7 @@ export default function GiveawayList() {
       
       <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{giveaway.title}</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{giveaway.description}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{stripMarkdown(giveaway.description)}</p>
       
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-sm">
@@ -126,7 +98,7 @@ export default function GiveawayList() {
           </div>
           <div className="flex items-center gap-2 text-sm">
             <FaCalendar className="text-green-500" />
-            <span className="text-xs"><strong>Ends:</strong> {formatDateInTimezone(giveaway.endDate)}</span>
+            <span className="text-xs"><strong>Ends:</strong> {formatDateTime(giveaway.endDate)}</span>
           </div>
           
           <div className="flex gap-2 mb-4">
@@ -158,7 +130,7 @@ export default function GiveawayList() {
         </div>
 
         <Link
-          href={`/giveaways/${giveaway._id}`}
+          href={`/giveaways/${giveaway.slug || giveaway._id}`}
           className="mt-auto block text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
         >
           View Details
@@ -250,6 +222,14 @@ export default function GiveawayList() {
           )}
         </div>
       )}
+
+      {/* Timezone Display */}
+      <div className="mt-8 text-center">
+        <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full">
+          <FaGlobe className="text-blue-500" />
+          <span>Times shown in: <strong>{timezoneLabel}</strong></span>
+        </div>
+      </div>
     </div>
   );
 }

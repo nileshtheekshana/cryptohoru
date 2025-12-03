@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password } = await request.json();
+    const { name, email, password, timezone } = await request.json();
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       role: 'user',
+      timezone: timezone || 'Asia/Kolkata', // Save timezone on registration
     });
 
     return NextResponse.json(
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
           id: user._id,
           name: user.name,
           email: user.email,
+          timezone: user.timezone,
         },
       },
       { status: 201 }

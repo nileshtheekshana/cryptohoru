@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { FaBars, FaTimes, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import TimezoneSelector from './TimezoneSelector';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +30,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -39,6 +40,9 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
+            
+            {/* Timezone Selector */}
+            <TimezoneSelector />
             
             {session ? (
               <>

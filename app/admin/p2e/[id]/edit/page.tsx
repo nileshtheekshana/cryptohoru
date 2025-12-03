@@ -11,6 +11,7 @@ interface Task {
   type: string;
   reward: string;
   link: string;
+  status: string;
   order: number;
 }
 
@@ -93,6 +94,7 @@ export default function EditP2EPage({
       type: 'social',
       reward: '',
       link: '',
+      status: 'ongoing',
       order: tasks.length,
     }]);
   };
@@ -292,7 +294,16 @@ export default function EditP2EPage({
               {tasks.map((task, index) => (
                 <div key={index} className="bg-gray-700 p-4 rounded-lg mb-4">
                   <div className="flex justify-between items-start mb-3">
-                    <h4 className="font-semibold text-gray-300">Task {index + 1}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-300">Task {index + 1}</h4>
+                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                        task.status === 'ended'
+                          ? 'bg-red-900 text-red-300'
+                          : 'bg-green-900 text-green-300'
+                      }`}>
+                        {task.status === 'ended' ? 'Ended' : 'Ongoing'}
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeTask(index)}
@@ -319,7 +330,7 @@ export default function EditP2EPage({
                       rows={2}
                     />
 
-                    <div className="grid md:grid-cols-3 gap-3">
+                    <div className="grid md:grid-cols-4 gap-3">
                       <select
                         value={task.type}
                         onChange={(e) => updateTask(index, 'type', e.target.value)}
@@ -330,6 +341,15 @@ export default function EditP2EPage({
                         <option value="verification">Verification</option>
                         <option value="quiz">Quiz</option>
                         <option value="other">Other</option>
+                      </select>
+
+                      <select
+                        value={task.status || 'ongoing'}
+                        onChange={(e) => updateTask(index, 'status', e.target.value)}
+                        className="px-3 py-2 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="ongoing">Ongoing</option>
+                        <option value="ended">Ended</option>
                       </select>
 
                       <input

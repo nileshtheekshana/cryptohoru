@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { FaGamepad, FaCoins, FaGlobe } from 'react-icons/fa';
 import type { Metadata } from 'next';
+import { stripMarkdown } from '@/lib/stripMarkdown';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "Play-to-Earn Games - Earn Crypto While Gaming",
@@ -68,7 +71,7 @@ export default async function P2EGamesPage() {
                 
                 <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{game.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{game.description}</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{stripMarkdown(game.description)}</p>
                   
                   <div className="flex gap-2 mb-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
@@ -100,7 +103,7 @@ export default async function P2EGamesPage() {
                 </div>
 
                 <Link
-                  href={`/p2e-games/${game._id}`}
+                  href={`/p2e-games/${game.slug || game._id}`}
                   className="mt-auto block text-center bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition"
                 >
                   View Details

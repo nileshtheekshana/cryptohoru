@@ -12,30 +12,47 @@ interface FollowAirdropButtonProps {
 export default function FollowAirdropButton({ airdropId }: FollowAirdropButtonProps) {
   const { data: session, status } = useSession();
   const [isFollowing, setIsFollowing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
+    if (status === 'loading') return;
+    
     if (session?.user?.email) {
       checkFollowStatus();
+    } else {
+      setLoading(false);
     }
-  }, [session, airdropId]);
+  }, [session, status, airdropId]);
 
   const checkFollowStatus = async () => {
+    setLoading(true);
     try {
-      const response = await fetch('/api/users/me');
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/users/me?t=${Date.now()}`, {
+        cache: 'no-store',
+      });
       if (response.ok) {
         const data = await response.json();
-        setIsFollowing(data.followedAirdrops?.includes(airdropId) || false);
+        // API returns { success: true, user: { followedAirdrops: [...] } }
+        const followedAirdrops = data.user?.followedAirdrops || [];
+        const airdropIdStr = airdropId.toString();
+        const isCurrentlyFollowing = followedAirdrops.some(
+          (id: string) => id.toString() === airdropIdStr
+        );
+        setIsFollowing(isCurrentlyFollowing);
       }
     } catch (error) {
       console.error('Error checking follow status:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFollow = async () => {
     if (!session?.user) return;
 
-    setLoading(true);
+    setActionLoading(true);
     try {
       const response = await fetch('/api/users/follow-airdrop', {
         method: isFollowing ? 'DELETE' : 'POST',
@@ -47,23 +64,29 @@ export default function FollowAirdropButton({ airdropId }: FollowAirdropButtonPr
         setIsFollowing(!isFollowing);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to update follow status');
+        // If already following, just update the state
+        if (data.error === 'Already following this airdrop') {
+          setIsFollowing(true);
+        } else {
+          alert(data.error || 'Failed to update follow status');
+        }
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
       alert('Failed to update follow status');
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
-  // Show loading state while checking auth
-  if (status === 'loading') {
+  // Show loading state while checking auth or follow status
+  if (status === 'loading' || loading) {
     return (
       <button
         disabled
-        className="w-full bg-gray-400 text-white py-3 px-6 rounded-lg font-semibold opacity-50 cursor-not-allowed"
+        className="w-full bg-gray-400 text-white py-3 px-6 rounded-lg font-semibold opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
       >
+        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
         Loading...
       </button>
     );
@@ -85,18 +108,21 @@ export default function FollowAirdropButton({ airdropId }: FollowAirdropButtonPr
   return (
     <button
       onClick={handleFollow}
-      disabled={loading}
+      disabled={actionLoading}
       className={`w-full py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
         isFollowing
           ? 'bg-red-600 hover:bg-red-700 text-white'
           : 'bg-blue-600 hover:bg-blue-700 text-white'
-      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      } ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
-      {loading ? (
-        'Loading...'
+      {actionLoading ? (
+        <>
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+          {isFollowing ? 'Unfollowing...' : 'Following...'}
+        </>
       ) : isFollowing ? (
         <>
-          <FaHeart /> Unfollow
+          <FaHeart className="text-pink-200" /> Unfollow Airdrop
         </>
       ) : (
         <>

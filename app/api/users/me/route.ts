@@ -36,8 +36,11 @@ export async function GET(request: NextRequest) {
         name: user.name,
         email: user.email,
         role: user.role,
+        timezone: user.timezone || 'Asia/Kolkata',
         completedTasks: user.completedTasks || [],
-        followedAirdrops: user.followedAirdrops || [],
+        followedAirdrops: (user.followedAirdrops || []).map((id: any) => id.toString()),
+        followedGiveaways: (user.followedGiveaways || []).map((id: any) => id.toString()),
+        completedGiveawayTasks: user.completedGiveawayTasks || [],
       },
     });
   } catch (error: any) {

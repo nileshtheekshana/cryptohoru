@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectDB from '@/lib/mongodb';
 import { User } from '@/models';
+import mongoose from 'mongoose';
 
 export const runtime = 'nodejs';
 
@@ -36,23 +37,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if already following
-    if (user.followedAirdrops?.includes(airdropId)) {
+    // Convert to ObjectId for proper comparison
+    const airdropObjectId = new mongoose.Types.ObjectId(airdropId);
+
+    // Check if already following (compare as strings)
+    const isAlreadyFollowing = user.followedAirdrops?.some(
+      (id: any) => id.toString() === airdropObjectId.toString()
+    );
+
+    if (isAlreadyFollowing) {
       return NextResponse.json(
-        { error: 'Already following this airdrop' },
+        { error: 'Already following this airdrop', isFollowing: true },
         { status: 400 }
       );
     }
 
     // Add to followed airdrops
     user.followedAirdrops = user.followedAirdrops || [];
-    user.followedAirdrops.push(airdropId);
+    user.followedAirdrops.push(airdropObjectId);
 
     await user.save();
 
     return NextResponse.json({
       success: true,
-      followedAirdrops: user.followedAirdrops,
+      isFollowing: true,
+      followedAirdrops: user.followedAirdrops.map((id: any) => id.toString()),
     });
   } catch (error: any) {
     console.error('Error following airdrop:', error);
@@ -94,21 +103,22 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Remove from followed airdrops
+    // Remove from followed airdrops (compare as strings)
     user.followedAirdrops = user.followedAirdrops?.filter(
-      (id: string) => id !== airdropId
+      (id: any) => id.toString() !== airdropId.toString()
     ) || [];
 
     // Also remove all completed tasks for this airdrop
     user.completedTasks = user.completedTasks?.filter(
-      (ct: any) => ct.airdropId !== airdropId
+      (ct: any) => ct.airdropId?.toString() !== airdropId.toString()
     ) || [];
 
     await user.save();
 
     return NextResponse.json({
       success: true,
-      followedAirdrops: user.followedAirdrops,
+      isFollowing: false,
+      followedAirdrops: user.followedAirdrops.map((id: any) => id.toString()),
     });
   } catch (error: any) {
     console.error('Error unfollowing airdrop:', error);
