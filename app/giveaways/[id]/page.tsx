@@ -8,11 +8,23 @@ import connectDB from '@/lib/mongodb';
 import { Giveaway } from '@/models';
 import type { Metadata } from 'next';
 import { stripMarkdown } from '@/lib/stripMarkdown';
+import mongoose from 'mongoose';
+
+// Helper to find by ID or slug
+async function findGiveaway(idOrSlug: string) {
+  // Check if it's a valid MongoDB ObjectId
+  if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+    const byId = await Giveaway.findById(idOrSlug).lean();
+    if (byId) return byId;
+  }
+  // Try to find by slug
+  return await Giveaway.findOne({ slug: idOrSlug }).lean();
+}
 
 async function getGiveaway(id: string) {
   try {
     await connectDB();
-    const giveaway = await Giveaway.findById(id).lean();
+    const giveaway = await findGiveaway(id);
     return giveaway ? JSON.parse(JSON.stringify(giveaway)) : null;
   } catch (error) {
     console.error('Error fetching giveaway:', error);

@@ -9,11 +9,23 @@ import connectDB from '@/lib/mongodb';
 import { Airdrop } from '@/models';
 import type { Metadata } from 'next';
 import { stripMarkdown } from '@/lib/stripMarkdown';
+import mongoose from 'mongoose';
+
+// Helper to find by ID or slug
+async function findAirdrop(idOrSlug: string) {
+  // Check if it's a valid MongoDB ObjectId
+  if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+    const byId = await Airdrop.findById(idOrSlug).lean();
+    if (byId) return byId;
+  }
+  // Try to find by slug
+  return await Airdrop.findOne({ slug: idOrSlug }).lean();
+}
 
 async function getAirdrop(id: string) {
   try {
     await connectDB();
-    const airdrop = await Airdrop.findById(id).lean();
+    const airdrop = await findAirdrop(id);
     return airdrop ? JSON.parse(JSON.stringify(airdrop)) : null;
   } catch (error) {
     console.error('Error fetching airdrop:', error);
