@@ -3,6 +3,9 @@ import connectDB from '@/lib/mongodb';
 import { AMA } from '@/models';
 import type { Metadata } from 'next';
 
+// Force dynamic rendering - no caching
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Crypto AMA Sessions - Ask Me Anything with Project Teams",
   description: "Join live cryptocurrency AMA sessions with blockchain project founders and teams. Get your questions answered directly from crypto experts and industry leaders.",

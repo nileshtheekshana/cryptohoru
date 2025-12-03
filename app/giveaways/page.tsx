@@ -1,6 +1,9 @@
 import GiveawayList from '@/components/GiveawayList';
 import type { Metadata } from 'next';
 
+// Force dynamic rendering - no caching
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Crypto Giveaways - Win Free Cryptocurrency & Prizes",
   description: "Participate in the latest crypto giveaways and win Bitcoin, Ethereum, NFTs, and other cryptocurrency prizes. Enter daily contests and win big in the crypto space.",

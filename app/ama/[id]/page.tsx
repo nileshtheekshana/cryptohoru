@@ -6,6 +6,9 @@ import AMADates from '@/components/AMADates';
 import type { Metadata } from 'next';
 import { stripMarkdown } from '@/lib/stripMarkdown';
 
+// Force dynamic rendering - no caching
+export const dynamic = 'force-dynamic';
+
 async function getAMA(id: string) {
   try {
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';

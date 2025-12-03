@@ -11,6 +11,9 @@ import type { Metadata } from 'next';
 import { stripMarkdown } from '@/lib/stripMarkdown';
 import mongoose from 'mongoose';
 
+// Force dynamic rendering - no caching
+export const dynamic = 'force-dynamic';
+
 // Helper to find by ID or slug
 async function findAirdrop(idOrSlug: string) {
   // Check if it's a valid MongoDB ObjectId
