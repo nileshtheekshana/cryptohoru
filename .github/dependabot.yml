@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    # Auto-merge security updates
+    open-pull-requests-limit: 10
+    # Group all updates into one PR
+    groups:
+      security-updates:
+        applies-to: security-updates
