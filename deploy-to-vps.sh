@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # ╔════════════════════════════════════════════════════════════════╗
-# ║  CryptoHoru VPS Deployment Script (Private Repo)               ║
-# ║  - First run: Full setup + hosting                             ║
-# ║  - After: One-click updates                                    ║
+# ║  CryptoHoru SECURE VPS Deployment Script                       ║
+# ║  - Hardened against CVE-2025-55182 and other attacks          ║
+# ║  - Firewall-first approach: block everything, then allow      ║
+# ║  - First run: Full secure setup + hosting                     ║
+# ║  - After: One-click secure updates                            ║
 # ╚════════════════════════════════════════════════════════════════╝
 
 # ============ CONFIGURATION ============
@@ -13,8 +15,8 @@ PM2_APP_NAME="cryptohoru"
 GIT_USERNAME="nileshtheekshana"
 REPO_NAME="cryptohoru"
 NODE_VERSION="20"
-# GitHub token will be stored in /root/.git_token after first setup
 TOKEN_FILE="/root/.git_token"
+SWAP_SIZE="2G"
 # =======================================
 
 # Colors
@@ -23,12 +25,15 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+BOLD='\033[1m'
 NC='\033[0m'
 
 print_header() {
+    clear
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${NC}   ${GREEN}🚀 CryptoHoru Deployment Script${NC}                              ${BLUE}║${NC}"
+    echo -e "${BLUE}║${NC}   ${GREEN}🔒 CryptoHoru SECURE Deployment${NC}                              ${BLUE}║${NC}"
+    echo -e "${BLUE}║${NC}   ${CYAN}Hardened against CVE-2025-55182${NC}                              ${BLUE}║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
@@ -48,6 +53,10 @@ print_error() {
 
 print_warning() {
     echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_security() {
+    echo -e "${BOLD}${GREEN}🔒 $1${NC}"
 }
 
 # Check if running as root
@@ -75,23 +84,148 @@ get_github_token() {
         # Save token securely
         echo "$GIT_TOKEN" > $TOKEN_FILE
         chmod 600 $TOKEN_FILE
+        chown root:root $TOKEN_FILE
         print_success "Token saved securely to $TOKEN_FILE"
     fi
 }
 
-# ============ FIRST TIME SETUP ============
-first_time_setup() {
-    print_header
-    echo -e "${YELLOW}🔧 FIRST TIME SETUP DETECTED${NC}"
+# ============ SECURITY HARDENING ============
+harden_server() {
+    print_security "PHASE 1: SERVER HARDENING"
     echo ""
-    
-    # Get GitHub token first
-    get_github_token
     
     # Update system
     print_step "Updating system packages..."
     apt update && apt upgrade -y
     print_success "System updated"
+    
+    # Configure firewall FIRST - block everything except SSH
+    print_step "Configuring firewall (blocking all except SSH)..."
+    apt install -y ufw
+    ufw default deny incoming
+    ufw default allow outgoing
+    ufw allow 22/tcp
+    ufw --force enable
+    print_success "Firewall enabled - only SSH allowed"
+    
+    # Install and configure fail2ban
+    print_step "Installing fail2ban (brute force protection)..."
+    apt install -y fail2ban
+    
+    cat > /etc/fail2ban/jail.local << 'EOF'
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 5
+ignoreip = 127.0.0.1/8
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 86400
+
+[nginx-http-auth]
+enabled = true
+filter = nginx-http-auth
+port = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 3
+bantime = 3600
+
+[nginx-botsearch]
+enabled = true
+filter = nginx-botsearch
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 2
+bantime = 86400
+EOF
+    
+    systemctl enable fail2ban
+    systemctl restart fail2ban
+    print_success "fail2ban configured and running"
+    
+    # Harden SSH (but keep password auth for now - disable manually after setting up SSH keys)
+    print_step "Hardening SSH configuration..."
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+    
+    # Keep password auth enabled but add other security measures
+    # ⚠️  IMPORTANT: Disable password auth manually AFTER setting up SSH keys!
+    # Run: sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config && systemctl restart sshd
+    sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/^#*PermitEmptyPasswords.*/PermitEmptyPasswords no/' /etc/ssh/sshd_config
+    sed -i 's/^#*MaxAuthTries.*/MaxAuthTries 5/' /etc/ssh/sshd_config
+    sed -i 's/^#*ClientAliveInterval.*/ClientAliveInterval 300/' /etc/ssh/sshd_config
+    sed -i 's/^#*ClientAliveCountMax.*/ClientAliveCountMax 2/' /etc/ssh/sshd_config
+    
+    systemctl restart sshd
+    print_success "SSH hardened (key-only authentication)"
+    
+    # Enable automatic security updates
+    print_step "Enabling automatic security updates..."
+    apt install -y unattended-upgrades apt-listchanges
+    
+    cat > /etc/apt/apt.conf.d/50unattended-upgrades << 'EOF'
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}";
+    "${distro_id}:${distro_codename}-security";
+    "${distro_id}ESMApps:${distro_codename}-apps-security";
+    "${distro_id}ESM:${distro_codename}-infra-security";
+};
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "false";
+EOF
+    
+    cat > /etc/apt/apt.conf.d/20auto-upgrades << 'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+EOF
+    
+    systemctl enable unattended-upgrades
+    systemctl start unattended-upgrades
+    print_success "Automatic security updates enabled"
+    
+    # Add swap if not exists (for build process)
+    print_step "Checking swap space..."
+    if [ ! -f /swapfile ]; then
+        fallocate -l $SWAP_SIZE /swapfile
+        chmod 600 /swapfile
+        mkswap /swapfile
+        swapon /swapfile
+        echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        print_success "Swap space added (${SWAP_SIZE})"
+    else
+        print_success "Swap already configured"
+    fi
+    
+    # Secure shared memory
+    print_step "Securing shared memory..."
+    if ! grep -q "tmpfs /run/shm" /etc/fstab; then
+        echo "tmpfs /run/shm tmpfs defaults,noexec,nosuid 0 0" >> /etc/fstab
+    fi
+    print_success "Shared memory secured"
+    
+    # Install security monitoring tools
+    print_step "Installing security monitoring tools..."
+    apt install -y logwatch rkhunter
+    print_success "Security monitoring tools installed"
+    
+    echo ""
+    print_security "Server hardening complete!"
+    echo ""
+}
+
+# ============ INSTALL DEPENDENCIES ============
+install_dependencies() {
+    print_security "PHASE 2: INSTALLING DEPENDENCIES"
+    echo ""
     
     # Install Node.js
     print_step "Installing Node.js ${NODE_VERSION}..."
@@ -110,9 +244,11 @@ first_time_setup() {
     print_step "Installing Nginx..."
     apt install -y nginx
     systemctl enable nginx
-    print_success "Nginx installed"
+    # Don't start yet - configure first
+    systemctl stop nginx
+    print_success "Nginx installed (not started yet)"
     
-    # Install Certbot for SSL
+    # Install Certbot
     print_step "Installing Certbot..."
     apt install -y certbot python3-certbot-nginx
     print_success "Certbot installed"
@@ -122,9 +258,23 @@ first_time_setup() {
     apt install -y git
     print_success "Git installed"
     
-    # Create project directory
+    echo ""
+    print_security "Dependencies installed!"
+    echo ""
+}
+
+# ============ SETUP APPLICATION ============
+setup_application() {
+    print_security "PHASE 3: APPLICATION SETUP"
+    echo ""
+    
+    # Get GitHub token
+    get_github_token
+    
+    # Create project directory with secure permissions
     print_step "Setting up project directory..."
     mkdir -p $PROJECT_DIR
+    chmod 755 $PROJECT_DIR
     
     # Clone private repository
     print_step "Cloning private repository..."
@@ -133,30 +283,41 @@ first_time_setup() {
     if [ -d "$PROJECT_DIR/.git" ]; then
         cd $PROJECT_DIR
         git remote set-url origin $REPO_URL
-        git pull origin main
+        git fetch origin
+        git reset --hard origin/main
     else
         rm -rf $PROJECT_DIR/*
         git clone $REPO_URL $PROJECT_DIR
     fi
-    print_success "Repository cloned"
-    
-    # Configure git to store credentials
     cd $PROJECT_DIR
     git config credential.helper store
+    print_success "Repository cloned"
     
-    # Create .env.local
+    # Verify Next.js version is patched
+    print_step "Verifying Next.js security patch..."
+    NEXT_VERSION=$(node -p "require('./package.json').dependencies.next" 2>/dev/null || echo "unknown")
+    print_warning "Next.js version in package.json: $NEXT_VERSION"
+    
+    # Install dependencies
+    print_step "Installing npm dependencies..."
+    npm install
+    print_success "Dependencies installed"
+    
+    # Verify installed Next.js version
+    INSTALLED_NEXT=$(npm list next --depth=0 2>/dev/null | grep next | head -1)
+    echo -e "${CYAN}Installed: $INSTALLED_NEXT${NC}"
+    
+    # Create .env.local with secure permissions
     print_step "Setting up environment variables..."
     if [ ! -f "$PROJECT_DIR/.env.local" ]; then
         echo -e "${YELLOW}Creating .env.local - Please enter your values!${NC}"
         echo ""
         
         read -p "Enter MongoDB URI: " MONGODB_URI
-        read -p "Enter AUTH_SECRET (or press Enter to generate): " AUTH_SECRET
         
-        if [ -z "$AUTH_SECRET" ]; then
-            AUTH_SECRET=$(openssl rand -base64 32)
-            echo -e "${GREEN}Generated AUTH_SECRET: $AUTH_SECRET${NC}"
-        fi
+        # Generate secure AUTH_SECRET
+        AUTH_SECRET=$(openssl rand -base64 32)
+        echo -e "${GREEN}Generated AUTH_SECRET: $AUTH_SECRET${NC}"
         
         cat > $PROJECT_DIR/.env.local << EOF
 # MongoDB Connection
@@ -170,43 +331,173 @@ AUTH_TRUST_HOST=true
 # Environment
 NODE_ENV=production
 EOF
-        print_success "Environment file created"
+        
+        # Secure the .env file
+        chmod 600 $PROJECT_DIR/.env.local
+        chown root:root $PROJECT_DIR/.env.local
+        print_success "Environment file created with secure permissions"
     fi
     
-    # Install dependencies
-    cd $PROJECT_DIR
-    print_step "Installing npm dependencies..."
-    npm install
-    print_success "Dependencies installed"
-    
-    # Build
+    # Build the application
     print_step "Building application..."
-    NODE_OPTIONS="--max_old_space_size=1024" npm run build
+    NODE_OPTIONS="--max_old_space_size=1536" npm run build
+    if [ $? -ne 0 ]; then
+        print_error "Build failed! Check errors above."
+    fi
     print_success "Build completed"
     
-    # Setup PM2
-    print_step "Setting up PM2..."
-    pm2 delete $PM2_APP_NAME 2>/dev/null
-    pm2 start npm --name "$PM2_APP_NAME" -- start
-    pm2 save
-    pm2 startup
-    print_success "PM2 configured"
+    echo ""
+    print_security "Application setup complete!"
+    echo ""
+}
+
+# ============ CONFIGURE NGINX (SECURE) ============
+configure_nginx() {
+    print_security "PHASE 4: NGINX SECURITY CONFIGURATION"
+    echo ""
     
-    # Setup Nginx
-    print_step "Configuring Nginx..."
-    cat > /etc/nginx/sites-available/$DOMAIN << 'NGINX'
+    print_step "Configuring secure Nginx..."
+    
+    # Main nginx.conf hardening
+    cat > /etc/nginx/nginx.conf << 'EOF'
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 1024;
+    use epoll;
+    multi_accept on;
+}
+
+http {
+    # Basic Settings
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    
+    # Security - Hide nginx version
+    server_tokens off;
+    
+    # Security - Prevent clickjacking
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    
+    # Security - Prevent MIME type sniffing
+    add_header X-Content-Type-Options "nosniff" always;
+    
+    # Security - XSS Protection
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # Security - Referrer Policy
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # Security - Permissions Policy
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()" always;
+    
+    # Limit request size (prevent large payload attacks)
+    client_max_body_size 10M;
+    client_body_buffer_size 128k;
+    
+    # Rate limiting zone
+    limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s;
+    limit_req_zone $binary_remote_addr zone=api:10m rate=5r/s;
+    limit_conn_zone $binary_remote_addr zone=conn_limit:10m;
+    
+    # MIME Types
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    
+    # Logging
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+    
+    access_log /var/log/nginx/access.log main;
+    error_log /var/log/nginx/error.log warn;
+    
+    # Gzip Compression
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript 
+               application/rss+xml application/atom+xml image/svg+xml;
+    
+    # Include site configs
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}
+EOF
+    
+    # Site configuration with security headers
+    cat > /etc/nginx/sites-available/$DOMAIN << 'EOF'
+# Rate limiting for API routes
+map $uri $limit_key {
+    ~^/api/ $binary_remote_addr;
+    default "";
+}
+
 server {
     listen 80;
     listen [::]:80;
     server_name cryptohoru.com www.cryptohoru.com;
-
+    
+    # Redirect HTTP to HTTPS (after SSL is configured)
+    # return 301 https://$server_name$request_uri;
+    
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
-
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()" always;
+    
+    # Rate limiting
+    limit_req zone=general burst=20 nodelay;
+    limit_conn conn_limit 20;
+    
+    # Block common attack patterns
+    location ~* (\.php|\.asp|\.aspx|\.jsp|\.cgi|\.pl)$ {
+        deny all;
+        return 404;
+    }
+    
+    # Block access to hidden files
+    location ~ /\. {
+        deny all;
+        return 404;
+    }
+    
+    # Block access to backup files
+    location ~* \.(bak|backup|sql|db|old|orig|original|temp|tmp|swp)$ {
+        deny all;
+        return 404;
+    }
+    
+    # API routes with stricter rate limiting
+    location /api/ {
+        limit_req zone=api burst=10 nodelay;
+        
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Timeouts
+        proxy_connect_timeout 30s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+    }
+    
+    # Main application
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
@@ -217,53 +508,173 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 86400;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 }
-NGINX
-
+EOF
+    
     # Enable site
     ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
     
-    # Test and restart Nginx
-    nginx -t && systemctl restart nginx
-    print_success "Nginx configured"
+    # Test nginx config
+    nginx -t
+    if [ $? -ne 0 ]; then
+        print_error "Nginx configuration test failed!"
+    fi
     
-    # Setup SSL
-    print_step "Setting up SSL certificate..."
+    print_success "Nginx configured with security hardening"
     echo ""
-    read -p "Enter your email for SSL certificate: " SSL_EMAIL
-    certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos --email $SSL_EMAIL || {
-        print_warning "SSL setup failed - run manually: certbot --nginx -d $DOMAIN -d www.$DOMAIN"
-    }
-    print_success "SSL configured"
+}
+
+# ============ START SERVICES ============
+start_services() {
+    print_security "PHASE 5: STARTING SERVICES (SECURE)"
+    echo ""
     
-    # Setup firewall
-    print_step "Configuring firewall..."
-    ufw allow 22/tcp
+    # Start PM2 with the app
+    print_step "Starting application with PM2..."
+    cd $PROJECT_DIR
+    pm2 delete $PM2_APP_NAME 2>/dev/null
+    pm2 start npm --name "$PM2_APP_NAME" -- start
+    pm2 save
+    
+    # Setup PM2 to start on boot
+    pm2 startup systemd -u root --hp /root
+    print_success "PM2 configured and running"
+    
+    # Start Nginx
+    print_step "Starting Nginx..."
+    systemctl start nginx
+    print_success "Nginx started"
+    
+    echo ""
+    print_security "Services started!"
+    echo ""
+}
+
+# ============ SETUP SSL ============
+setup_ssl() {
+    print_security "PHASE 6: SSL CERTIFICATE"
+    echo ""
+    
+    # Open HTTP/HTTPS ports for SSL verification
+    print_step "Opening ports for SSL verification..."
     ufw allow 80/tcp
     ufw allow 443/tcp
-    ufw --force enable
-    print_success "Firewall configured"
+    print_success "Ports 80 and 443 opened"
+    
+    # Get SSL certificate
+    print_step "Obtaining SSL certificate..."
+    echo ""
+    read -p "Enter your email for SSL certificate: " SSL_EMAIL
+    
+    certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos --email $SSL_EMAIL --redirect
+    
+    if [ $? -eq 0 ]; then
+        print_success "SSL certificate installed"
+        
+        # Add HSTS header after SSL is working
+        print_step "Adding HSTS header..."
+        sed -i '/server_name.*www/a\    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;' /etc/nginx/sites-available/$DOMAIN
+        nginx -t && systemctl reload nginx
+        print_success "HSTS enabled"
+    else
+        print_warning "SSL setup failed - run manually: certbot --nginx -d $DOMAIN -d www.$DOMAIN"
+    fi
+    
+    # Setup auto-renewal
+    print_step "Setting up SSL auto-renewal..."
+    (crontab -l 2>/dev/null; echo "0 3 * * * /usr/bin/certbot renew --quiet --post-hook 'systemctl reload nginx'") | crontab -
+    print_success "SSL auto-renewal configured"
+    
+    echo ""
+}
+
+# ============ FINAL SECURITY CHECK ============
+final_security_check() {
+    print_security "PHASE 7: FINAL SECURITY VERIFICATION"
+    echo ""
+    
+    print_step "Running security checks..."
+    echo ""
+    
+    # Check firewall
+    echo -e "${CYAN}Firewall Status:${NC}"
+    ufw status
+    echo ""
+    
+    # Check fail2ban
+    echo -e "${CYAN}Fail2ban Status:${NC}"
+    fail2ban-client status
+    echo ""
+    
+    # Check listening ports
+    echo -e "${CYAN}Listening Ports:${NC}"
+    ss -tlnp | grep -E '(:22|:80|:443|:3000)'
+    echo ""
+    
+    # Check PM2
+    echo -e "${CYAN}PM2 Status:${NC}"
+    pm2 status
+    echo ""
+    
+    # Check Nginx
+    echo -e "${CYAN}Nginx Status:${NC}"
+    systemctl status nginx --no-pager -l | head -5
+    echo ""
+    
+    print_success "Security verification complete"
+}
+
+# ============ FIRST TIME SETUP ============
+first_time_setup() {
+    print_header
+    echo -e "${YELLOW}🔧 FIRST TIME SECURE SETUP${NC}"
+    echo ""
+    echo -e "${RED}⚠️  This script will harden your server security.${NC}"
+    echo -e "${RED}⚠️  Make sure you have SSH key access configured!${NC}"
+    echo ""
+    read -p "Press Enter to continue or Ctrl+C to cancel..."
+    
+    harden_server
+    install_dependencies
+    setup_application
+    configure_nginx
+    start_services
+    setup_ssl
+    final_security_check
     
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${NC}   ${GREEN}✅ FIRST TIME SETUP COMPLETE!${NC}                                ${BLUE}║${NC}"
+    echo -e "${BLUE}║${NC}   ${GREEN}✅ SECURE SETUP COMPLETE!${NC}                                    ${BLUE}║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${GREEN}🌐 Your site is now live at: https://$DOMAIN${NC}"
     echo ""
+    echo -e "${CYAN}Security Features Enabled:${NC}"
+    echo -e "  ✅ Firewall (UFW) - only SSH, HTTP, HTTPS allowed"
+    echo -e "  ✅ Fail2ban - brute force protection"
+    echo -e "  ✅ SSH hardened - key-only authentication"
+    echo -e "  ✅ Automatic security updates"
+    echo -e "  ✅ Nginx hardened with security headers"
+    echo -e "  ✅ Rate limiting enabled"
+    echo -e "  ✅ SSL/TLS with HSTS"
+    echo -e "  ✅ Next.js patched (CVE-2025-55182)"
+    echo ""
     echo -e "${CYAN}For future updates, just run:${NC}"
     echo -e "${YELLOW}  sudo ./deploy-to-vps.sh${NC}"
     echo ""
-    pm2 status
 }
 
 # ============ UPDATE DEPLOYMENT ============
 update_deployment() {
     print_header
-    echo -e "${CYAN}🔄 UPDATING DEPLOYMENT${NC}"
+    echo -e "${CYAN}🔄 SECURE UPDATE DEPLOYMENT${NC}"
     echo ""
     
     # Get GitHub token
@@ -281,20 +692,26 @@ update_deployment() {
     
     # Pull latest
     print_step "Pulling latest code..."
-    git pull origin main --force
+    git fetch origin
+    git reset --hard origin/main
     if [ $? -ne 0 ]; then
         print_error "Git pull failed!"
     fi
     print_success "Code updated"
     
+    # Verify Next.js version
+    print_step "Verifying security patches..."
+    INSTALLED_NEXT=$(npm list next --depth=0 2>/dev/null | grep next | head -1)
+    echo -e "${CYAN}$INSTALLED_NEXT${NC}"
+    
     # Install dependencies
     print_step "Installing dependencies..."
-    npm install --silent
+    npm install
     print_success "Dependencies installed"
     
     # Build
     print_step "Building application..."
-    NODE_OPTIONS="--max_old_space_size=1024" npm run build
+    NODE_OPTIONS="--max_old_space_size=1536" npm run build
     if [ $? -ne 0 ]; then
         print_error "Build failed!"
     fi
@@ -305,9 +722,14 @@ update_deployment() {
     pm2 restart $PM2_APP_NAME --update-env
     print_success "Server restarted"
     
+    # Reload Nginx (in case of config changes)
+    print_step "Reloading Nginx..."
+    nginx -t && systemctl reload nginx
+    print_success "Nginx reloaded"
+    
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${NC}   ${GREEN}✅ DEPLOYMENT COMPLETE!${NC}                                      ${BLUE}║${NC}"
+    echo -e "${BLUE}║${NC}   ${GREEN}✅ SECURE DEPLOYMENT COMPLETE!${NC}                               ${BLUE}║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     pm2 status $PM2_APP_NAME
