@@ -86,7 +86,10 @@ export function generateAirdropPost(airdrop: any, baseUrl: string): string {
   
   if (airdrop.reward) post += `💰 Reward: ${airdrop.reward}\n`;
   if (airdrop.blockchain) post += `⛓️ Blockchain: ${airdrop.blockchain}\n`;
-  if (airdrop.endDate) post += `⏰ Ends: ${new Date(airdrop.endDate).toLocaleDateString()}\n`;
+  if (airdrop.endDate) {
+    const endDate = toIST(new Date(airdrop.endDate));
+    post += `⏰ Ends: ${endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} IST\n`;
+  }
   
   post += `\n🔗 ${postUrl}\n\n`;
   post += `#Airdrop #Crypto #FreeMoney`;
@@ -105,7 +108,8 @@ export function generateGiveawayPost(giveaway: any, baseUrl: string): string {
   post += `💰 Prize: *${giveaway.prize}*\n`;
   
   if (giveaway.endDate) {
-    post += `⏰ Ends: ${new Date(giveaway.endDate).toLocaleDateString()}\n`;
+    const endDate = toIST(new Date(giveaway.endDate));
+    post += `⏰ Ends: ${endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} IST\n`;
   }
   
   post += `\n🎯 Don't miss out!\n`;
@@ -113,6 +117,24 @@ export function generateGiveawayPost(giveaway: any, baseUrl: string): string {
   post += `#Giveaway #Crypto #Win`;
   
   return post;
+}
+
+/**
+ * Convert UTC date to IST (UTC+5:30)
+ */
+function toIST(date: Date): Date {
+  const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+  return istDate;
+}
+
+/**
+ * Format date to IST string
+ */
+function formatISTDateTime(date: Date): string {
+  const istDate = toIST(date);
+  const dateStr = istDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const timeStr = istDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return `${dateStr} at ${timeStr} IST`;
 }
 
 /**
@@ -127,8 +149,7 @@ export function generateAMAPost(ama: any, baseUrl: string): string {
   if (ama.project) post += `🏢 Project: *${ama.project}*\n`;
   if (ama.host) post += `👤 Host: ${ama.host}\n`;
   if (ama.date) {
-    const amaDate = new Date(ama.date);
-    post += `📅 ${amaDate.toLocaleDateString()} at ${amaDate.toLocaleTimeString()}\n`;
+    post += `📅 ${formatISTDateTime(new Date(ama.date))}\n`;
   }
   if (ama.platform) post += `📍 Platform: ${ama.platform}\n`;
   
