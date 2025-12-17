@@ -20,12 +20,34 @@ export const metadata: Metadata = {
 async function getAMAs() {
   try {
     await connectDB();
-    // Exclude hidden AMAs from public listing
-    const [liveAMAs, upcomingAMAs, completedAMAs] = await Promise.all([
-      AMA.find({ status: 'live' }).sort({ date: 1 }).lean(),
-      AMA.find({ status: 'upcoming' }).sort({ date: 1 }).limit(100).lean(),
-      AMA.find({ status: 'completed' }).sort({ date: -1 }).limit(6).lean(),
-    ]);
+    
+    // Get all non-hidden AMAs and recalculate status
+    const now = new Date();
+    const nowTime = now.getTime();
+    const allAMAs = await AMA.find({ status: { $ne: 'hidden' } }).lean();
+    
+    // Recalculate status for each AMA
+    const updatedAMAs = allAMAs.map(ama => {
+      const amaDateTime = new Date(ama.date);
+      const amaStartTime = amaDateTime.getTime();
+      const amaEndTime = amaStartTime + (2 * 60 * 60 * 1000); // 2 hours
+      
+      let status = ama.status;
+      if (nowTime >= amaStartTime && nowTime <= amaEndTime) {
+        status = 'live';
+      } else if (nowTime < amaStartTime) {
+        status = 'upcoming';
+      } else {
+        status = 'completed';
+      }
+      
+      return { ...ama, status };
+    });
+    
+    // Separate by calculated status
+    const liveAMAs = updatedAMAs.filter(ama => ama.status === 'live').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const upcomingAMAs = updatedAMAs.filter(ama => ama.status === 'upcoming').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 100);
+    const completedAMAs = updatedAMAs.filter(ama => ama.status === 'completed').sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
 
     return {
       liveAMAs: JSON.parse(JSON.stringify(liveAMAs)),

@@ -49,8 +49,11 @@ const AMASchema = new Schema({
   platform: { type: String },
   link: { type: String },
   rewards: { type: String },
+  preAMA: { type: Boolean, default: false }, // Pre-AMA activities indicator
+  preAMADetails: { type: String }, // Details about pre-AMA activities
   status: { type: String, enum: ['upcoming', 'live', 'completed', 'hidden'], default: 'upcoming' },
   tags: [{ type: String }],
+  liveReminderSent: { type: Boolean, default: false }, // Track live notification
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -69,6 +72,8 @@ const GiveawaySchema = new Schema({
   tasks: [TaskSchema],
   link: { type: String },
   tags: [{ type: String }],
+  oneDayReminderSent: { type: Boolean, default: false }, // Track 24h reminder
+  oneHourReminderSent: { type: Boolean, default: false }, // Track 1h reminder
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

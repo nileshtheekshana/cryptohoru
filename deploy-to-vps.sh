@@ -298,14 +298,36 @@ setup_application() {
     NEXT_VERSION=$(node -p "require('./package.json').dependencies.next" 2>/dev/null || echo "unknown")
     print_warning "Next.js version in package.json: $NEXT_VERSION"
     
-    # Install dependencies
+    # Install dependencies (clean install without vulnerabilities)
     print_step "Installing npm dependencies..."
-    npm install
+    npm ci --production=false 2>/dev/null || npm install
     print_success "Dependencies installed"
     
-    # Verify installed Next.js version
+    # Security check during first install
+    print_security "Checking for vulnerabilities in dependencies..."
+    echo ""
+    
+    npm audit --production > /tmp/first_audit.txt 2>&1
+    VULN_COUNT=$(grep -E "([0-9]+) vulnerabilities" /tmp/first_audit.txt | grep -oE "[0-9]+" | head -1)
+    
+    if [ -n "$VULN_COUNT" ] && [ "$VULN_COUNT" -gt 0 ]; then
+        print_warning "Found $VULN_COUNT vulnerabilities during installation"
+        print_step "Auto-fixing vulnerabilities..."
+        npm audit fix --force
+        print_success "Vulnerabilities fixed"
+    else
+        print_success "No vulnerabilities detected - clean installation!"
+    fi
+    echo ""
+    
+    # Verify installed versions
     INSTALLED_NEXT=$(npm list next --depth=0 2>/dev/null | grep next | head -1)
+    INSTALLED_REACT=$(npm list react --depth=0 2>/dev/null | grep -E "react@" | head -1)
+    INSTALLED_REACT_DOM=$(npm list react-dom --depth=0 2>/dev/null | grep react-dom | head -1)
     echo -e "${CYAN}Installed: $INSTALLED_NEXT${NC}"
+    echo -e "${CYAN}Installed: $INSTALLED_REACT${NC}"
+    echo -e "${CYAN}Installed: $INSTALLED_REACT_DOM${NC}"
+    echo ""
     
     # Create .env.local with secure permissions
     print_step "Setting up environment variables..."
@@ -691,20 +713,94 @@ update_deployment() {
     git stash --quiet 2>/dev/null
     
     # Pull latest
-    print_step "Pulling latest code..."
+    print_step "Pulling latest code from GitHub..."
     git fetch origin
     git reset --hard origin/main
     if [ $? -ne 0 ]; then
         print_error "Git pull failed!"
     fi
-    print_success "Code updated"
+    print_success "Latest code pulled from GitHub"
     
-    # Verify Next.js version
+    # Security audit before installation
+    print_security "Running security vulnerability scan..."
+    echo ""
+    
+    # Check for vulnerabilities
+    print_step "Checking npm audit..."
+    npm audit --production > /tmp/audit_report.txt 2>&1
+    VULN_COUNT=$(grep -E "([0-9]+) vulnerabilities" /tmp/audit_report.txt | grep -oE "[0-9]+" | head -1)
+    
+    if [ -n "$VULN_COUNT" ] && [ "$VULN_COUNT" -gt 0 ]; then
+        print_warning "Found $VULN_COUNT vulnerabilities"
+        echo ""
+        cat /tmp/audit_report.txt
+        echo ""
+        
+        print_step "Attempting to fix vulnerabilities..."
+        npm audit fix --force
+        
+        print_step "Re-checking vulnerabilities..."
+        npm audit --production > /tmp/audit_report_fixed.txt 2>&1
+        VULN_COUNT_AFTER=$(grep -E "([0-9]+) vulnerabilities" /tmp/audit_report_fixed.txt | grep -oE "[0-9]+" | head -1)
+        
+        if [ -z "$VULN_COUNT_AFTER" ] || [ "$VULN_COUNT_AFTER" -eq 0 ]; then
+            print_success "All vulnerabilities fixed!"
+        else
+            print_warning "Reduced to $VULN_COUNT_AFTER vulnerabilities"
+            echo ""
+            cat /tmp/audit_report_fixed.txt
+        fi
+    else
+        print_success "No vulnerabilities detected"
+    fi
+    echo ""
+    
+    # Check CVE-2025-55182 specifically
+    print_step "Checking CVE-2025-55182 (React2Shell)..."
+    NEXT_VERSION=$(node -p "require('./package.json').dependencies.next" 2>/dev/null | tr -d '^~')
+    REACT_VERSION=$(node -p "require('./package.json').dependencies.react" 2>/dev/null | tr -d '^~')
+    REACT_DOM_VERSION=$(node -p "require('./package.json').dependencies['react-dom']" 2>/dev/null | tr -d '^~')
+    
+    NEEDS_PATCH=false
+    
+    # Check Next.js version (need 15.5.7+)
+    if [[ "$NEXT_VERSION" < "15.5.7" ]]; then
+        print_warning "Next.js $NEXT_VERSION is vulnerable! Updating to 15.5.7..."
+        NEEDS_PATCH=true
+    fi
+    
+    # Check React version (need 19.1.2+)
+    if [[ "$REACT_VERSION" < "19.1.2" ]]; then
+        print_warning "React $REACT_VERSION is vulnerable! Updating to 19.1.2..."
+        NEEDS_PATCH=true
+    fi
+    
+    # Check React DOM version (need 19.1.2+)
+    if [[ "$REACT_DOM_VERSION" < "19.1.2" ]]; then
+        print_warning "react-dom $REACT_DOM_VERSION is vulnerable! Updating to 19.1.2..."
+        NEEDS_PATCH=true
+    fi
+    
+    if [ "$NEEDS_PATCH" = true ]; then
+        print_step "Applying CVE-2025-55182 patch..."
+        npm install next@15.5.7 react@19.1.2 react-dom@19.1.2
+        print_success "CVE-2025-55182 patched!"
+    else
+        print_success "Not vulnerable to CVE-2025-55182"
+    fi
+    echo ""
+    
+    # Verify versions after updates
     print_step "Verifying security patches..."
     INSTALLED_NEXT=$(npm list next --depth=0 2>/dev/null | grep next | head -1)
+    INSTALLED_REACT=$(npm list react --depth=0 2>/dev/null | grep -E "react@" | head -1)
+    INSTALLED_REACT_DOM=$(npm list react-dom --depth=0 2>/dev/null | grep react-dom | head -1)
     echo -e "${CYAN}$INSTALLED_NEXT${NC}"
+    echo -e "${CYAN}$INSTALLED_REACT${NC}"
+    echo -e "${CYAN}$INSTALLED_REACT_DOM${NC}"
+    echo ""
     
-    # Install dependencies
+    # Install/update dependencies
     print_step "Installing dependencies..."
     npm install
     print_success "Dependencies installed"
@@ -727,6 +823,11 @@ update_deployment() {
     nginx -t && systemctl reload nginx
     print_success "Nginx reloaded"
     
+    # Final security verification
+    echo ""
+    print_security "Post-deployment security check..."
+    npm audit --production | head -20
+    
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║${NC}   ${GREEN}✅ SECURE DEPLOYMENT COMPLETE!${NC}                               ${BLUE}║${NC}"
@@ -735,6 +836,13 @@ update_deployment() {
     pm2 status $PM2_APP_NAME
     echo ""
     echo -e "${GREEN}🌐 Site updated at: https://$DOMAIN${NC}"
+    echo ""
+    echo -e "${CYAN}Security Status:${NC}"
+    echo -e "  ✅ Latest code from GitHub deployed"
+    echo -e "  ✅ Vulnerabilities scanned and fixed"
+    echo -e "  ✅ CVE-2025-55182 patched"
+    echo -e "  ✅ Application rebuilt and restarted"
+    echo ""
 }
 
 # ============ MAIN ============

@@ -261,7 +261,8 @@ export default function EditGiveawayPage({
                 required
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="active">Active</option>
+                <option value="active">Live (Active)</option>
+                <option value="upcoming">Upcoming</option>
                 <option value="ended">Ended</option>
                 <option value="hidden">Hidden (Draft)</option>
               </select>

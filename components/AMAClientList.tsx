@@ -16,6 +16,8 @@ interface AMA {
   date: string;
   platform?: string;
   status: 'live' | 'upcoming' | 'completed';
+  preAMA?: boolean;
+  preAMADetails?: string;
 }
 
 interface AMAClientListProps {
@@ -92,7 +94,7 @@ export default function AMAClientList({
           )}
         </div>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 flex-wrap">
           <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
             ama.status === 'live' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
             ama.status === 'upcoming' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
@@ -100,6 +102,11 @@ export default function AMAClientList({
           }`}>
             {ama.status === 'live' ? '🔴 Live' : ama.status === 'upcoming' ? 'Upcoming' : 'Ended'}
           </span>
+          {ama.preAMA && ama.status === 'upcoming' && (
+            <span className="px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" title={ama.preAMADetails || 'Pre-AMA activities available'}>
+              🎯 Pre-AMA Activities Available
+            </span>
+          )}
         </div>
 
         <Link

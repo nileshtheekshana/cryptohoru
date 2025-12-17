@@ -56,22 +56,29 @@ export default function GiveawayList() {
     fetchGiveaways();
   }, [endedPage]);
 
-  const getGiveawayStatus = (endDate: string): 'live' | 'upcoming' | 'ended' => {
+  const getGiveawayStatus = (giveaway: Giveaway): 'live' | 'upcoming' | 'ended' => {
+    // Check if giveaway has ended
     const now = new Date();
-    const end = new Date(endDate);
-    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const end = new Date(giveaway.endDate);
     
     if (end < now) {
       return 'ended';
-    } else if (end <= sevenDaysFromNow) {
+    }
+    
+    // Use database status for live/upcoming (manually set by admin)
+    // Map 'active' status to 'live' for display
+    if (giveaway.status === 'active') {
       return 'live';
-    } else {
+    } else if (giveaway.status === 'upcoming') {
       return 'upcoming';
     }
+    
+    // Default to live if status is not set
+    return 'live';
   };
 
   const renderGiveawayCard = (giveaway: Giveaway) => {
-    const dynamicStatus = getGiveawayStatus(giveaway.endDate);
+    const dynamicStatus = getGiveawayStatus(giveaway);
     
     return (
     <div key={giveaway._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition">

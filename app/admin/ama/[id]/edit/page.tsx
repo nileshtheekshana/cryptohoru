@@ -40,6 +40,8 @@ export default function EditAMAPage({
     rewards: "",
     image: "",
     status: "upcoming",
+    preAMA: false,
+    preAMADetails: "",
   });
 
   useEffect(() => {
@@ -74,6 +76,8 @@ export default function EditAMAPage({
         rewards: data.rewards || "",
         image: data.image || "",
         status: data.status || "upcoming",
+        preAMA: data.preAMA || false,
+        preAMADetails: data.preAMADetails || "",
       });
       setLoading(false);
     } catch (error) {
@@ -121,9 +125,11 @@ export default function EditAMAPage({
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
+    const { name, value, type } = e.target;
+    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === 'checkbox' ? checked : value,
     });
   };
 
@@ -265,6 +271,66 @@ export default function EditAMAPage({
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            {/* Pre-AMA Activities */}
+            <div className="border border-purple-500 rounded-lg p-4 bg-purple-900/20">
+              <div className="flex items-center gap-3 mb-3">
+                <input
+                  type="checkbox"
+                  id="preAMA"
+                  name="preAMA"
+                  checked={formData.preAMA}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                />
+                <label htmlFor="preAMA" className="text-sm font-semibold text-gray-300 cursor-pointer">
+                  🎯 Has Pre-AMA Activities
+                </label>
+              </div>
+              {formData.preAMA && (
+                <div>
+                  <label className="block text-gray-300 mb-2">Pre-AMA Details</label>
+                  <textarea
+                    name="preAMADetails"
+                    value={formData.preAMADetails}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Describe the pre-AMA activities (e.g., Follow on Twitter, Join Telegram, etc.)"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Pre-AMA Activities */}
+            <div className="border border-purple-500 rounded-lg p-4 bg-purple-900/20">
+              <div className="flex items-center gap-3 mb-3">
+                <input
+                  type="checkbox"
+                  id="preAMA"
+                  name="preAMA"
+                  checked={formData.preAMA}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                />
+                <label htmlFor="preAMA" className="text-sm font-semibold text-gray-300 cursor-pointer">
+                  🎯 Has Pre-AMA Activities
+                </label>
+              </div>
+              {formData.preAMA && (
+                <div>
+                  <label className="block text-gray-300 mb-2">Pre-AMA Details</label>
+                  <textarea
+                    name="preAMADetails"
+                    value={formData.preAMADetails}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Describe the pre-AMA activities (e.g., Follow on Twitter, Join Telegram, etc.)"
+                  />
+                </div>
+              )}
             </div>
 
             <div>

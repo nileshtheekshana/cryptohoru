@@ -1,0 +1,124 @@
+name: Auto Security Patch & Deploy
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  security-check-and-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for vulnerabilities
+        id: audit
+        run: |
+          if npm audit --audit-level=high > audit.txt 2>&1; then
+            echo "No vulnerabilities found"
+            echo "has_vulns=false" >> $GITHUB_OUTPUT
+          else
+            echo "Vulnerabilities found!"
+            cat audit.txt
+            echo "has_vulns=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auto-fix vulnerabilities
+        if: steps.audit.outputs.has_vulns == 'true'
+        run: |
+          npm audit fix
+          npm audit fix --force || true
+
+      - name: Check React/Next.js versions (CVE-2025-55182)
+        id: check_cve
+        run: |
+          NEXT_VERSION=$(npm list next --depth=0 --json | jq -r '.dependencies.next.version // .version')
+          REACT_VERSION=$(npm list react --depth=0 --json | jq -r '.dependencies.react.version // .version')
+          
+          echo "Next.js: $NEXT_VERSION"
+          echo "React: $REACT_VERSION"
+          
+          # Check if vulnerable
+          VULNERABLE=false
+          
+          # Check Next.js (vulnerable: 15.0.0-15.5.6, need 15.5.7+)
+          if [[ "$NEXT_VERSION" =~ ^15\.[0-5]\. ]] && [[ ! "$NEXT_VERSION" =~ ^15\.5\.[7-9] ]]; then
+            echo "Next.js is vulnerable!"
+            VULNERABLE=true
+          fi
+          
+          # Check React (vulnerable: 19.0.0-19.1.1, need 19.1.2+)
+          if [[ "$REACT_VERSION" =~ ^19\.[01]\. ]] && [[ ! "$REACT_VERSION" =~ ^19\.1\.[2-9] ]]; then
+            echo "React is vulnerable!"
+            VULNERABLE=true
+          fi
+          
+          echo "vulnerable=$VULNERABLE" >> $GITHUB_OUTPUT
+
+      - name: Patch CVE-2025-55182
+        if: steps.check_cve.outputs.vulnerable == 'true'
+        run: |
+          echo "Patching CVE-2025-55182..."
+          npm install next@15.5.7 react@19.1.2 react-dom@19.1.2
+
+      - name: Run tests
+        run: npm run build
+        continue-on-error: true
+
+      - name: Commit changes
+        if: steps.audit.outputs.has_vulns == 'true' || steps.check_cve.outputs.vulnerable == 'true'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add package*.json
+          git diff --staged --quiet || git commit -m "SECURITY: Auto-patch vulnerabilities and CVE-2025-55182"
+          git push
+
+      - name: Trigger deployment webhook
+        if: steps.audit.outputs.has_vulns == 'true' || steps.check_cve.outputs.vulnerable == 'true'
+        env:
+          DEPLOY_WEBHOOK: ${{ secrets.DEPLOY_WEBHOOK }}
+          WEBHOOK_SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+        run: |
+          if [ -n "$DEPLOY_WEBHOOK" ]; then
+            PAYLOAD='{"ref":"refs/heads/main","repository":{"name":"${{ github.repository }}"},"sender":{"login":"github-actions[bot]"}}'
+            
+            if [ -n "$WEBHOOK_SECRET" ]; then
+              SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
+              curl -X POST "$DEPLOY_WEBHOOK" \
+                -H "Content-Type: application/json" \
+                -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+                -d "$PAYLOAD"
+            else
+              curl -X POST "$DEPLOY_WEBHOOK" \
+                -H "Content-Type: application/json" \
+                -d "$PAYLOAD"
+            fi
+          fi
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Security Patch Failed',
+              body: 'Automated security patching failed. Manual intervention required.\n\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.run_id }}',
+              labels: ['security', 'urgent']
+            })

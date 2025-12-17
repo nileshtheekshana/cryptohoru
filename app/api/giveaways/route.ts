@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Giveaway } from '@/models';
 import { generateUniqueSlug } from '@/lib/generateSlug';
+import { sendNewContentToChannel, generateGiveawayPost } from '@/lib/telegram';
 
 export const runtime = 'nodejs';
 
@@ -24,25 +25,44 @@ export async function GET(request: NextRequest) {
       filter.status = { $ne: 'hidden' };
     }
     
-    // Calculate status based on endDate
+    // Get all giveaways and calculate status
+    const allGiveaways = await Giveaway.find(filter);
+    
+    // Update status dynamically: only auto-set to 'ended' if past endDate
+    const updatedGiveaways = allGiveaways.map(giveaway => {
+      const giveawayObj = giveaway.toObject();
+      const endDate = new Date(giveawayObj.endDate);
+      
+      // Only auto-calculate 'ended' status
+      if (endDate < now && giveawayObj.status !== 'hidden') {
+        giveawayObj.status = 'ended';
+      }
+      
+      return giveawayObj;
+    });
+    
+    // Filter by status if requested
+    let filteredGiveaways = updatedGiveaways;
     if (statusParam === 'live') {
-      // Live: endDate is in the future (within next 7 days or less)
-      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      filter.endDate = { $gte: now, $lte: sevenDaysFromNow };
+      filteredGiveaways = updatedGiveaways.filter(g => g.status === 'active' || g.status === 'live');
     } else if (statusParam === 'upcoming') {
-      // Upcoming: endDate is more than 7 days in the future
-      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      filter.endDate = { $gt: sevenDaysFromNow };
+      filteredGiveaways = updatedGiveaways.filter(g => g.status === 'upcoming');
     } else if (statusParam === 'ended') {
-      // Ended: endDate has passed
-      filter.endDate = { $lt: now };
+      filteredGiveaways = updatedGiveaways.filter(g => g.status === 'ended');
     }
     
-    const total = await Giveaway.countDocuments(filter);
-    const giveaways = await Giveaway.find(filter)
-      .sort({ endDate: statusParam === 'ended' ? -1 : 1 })
-      .skip(skip)
-      .limit(limit);
+    // Sort filtered giveaways
+    const sortedGiveaways = includeHidden
+      ? filteredGiveaways.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      : filteredGiveaways.sort((a, b) => {
+          if (statusParam === 'ended') {
+            return new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
+          }
+          return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
+        });
+    
+    const total = sortedGiveaways.length;
+    const giveaways = sortedGiveaways.slice(skip, skip + limit);
     
     return NextResponse.json({ 
       success: true, 
@@ -73,6 +93,16 @@ export async function POST(request: NextRequest) {
     const slug = generateUniqueSlug(body.title, giveaway._id.toString());
     giveaway.slug = slug;
     await giveaway.save();
+    
+    // Send Telegram notification to channel
+    try {
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://cryptohoru.com';
+      const message = generateGiveawayPost(giveaway.toObject(), baseUrl);
+      await sendNewContentToChannel(message);
+    } catch (error) {
+      console.error('Failed to send Telegram notification:', error);
+      // Don't fail the request if Telegram fails
+    }
     
     return NextResponse.json(
       { success: true, data: giveaway },

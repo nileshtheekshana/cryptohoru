@@ -21,7 +21,7 @@ export default function NewGiveawayPage() {
     requirements: [''],
     link: '',
     image: '',
-    status: 'active',
+    status: 'active', // Active = Live for users
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -223,7 +223,8 @@ export default function NewGiveawayPage() {
                 required
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
               >
-                <option value="active">Active</option>
+                <option value="active">Live (Active) - Default for new giveaways</option>
+                <option value="upcoming">Upcoming</option>
                 <option value="ended">Ended</option>
                 <option value="hidden">Hidden (Draft)</option>
               </select>

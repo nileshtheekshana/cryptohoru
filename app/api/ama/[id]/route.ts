@@ -52,6 +52,37 @@ export async function GET(
       );
     }
     
+    // Dynamically calculate status based on current time
+    if (ama.date && ama.status !== 'hidden') {
+      const now = new Date();
+      const amaDateTime = new Date(ama.date);
+      const amaStartTime = amaDateTime.getTime();
+      const amaEndTime = amaStartTime + (2 * 60 * 60 * 1000); // 2 hours after start
+      const nowTime = now.getTime();
+      
+      // Debug logging
+      console.log('AMA Status Calculation:', {
+        amaId: ama._id,
+        amaDate: ama.date,
+        amaDateTimeISO: amaDateTime.toISOString(),
+        nowISO: now.toISOString(),
+        amaStartTime,
+        amaEndTime,
+        nowTime,
+        isLive: nowTime >= amaStartTime && nowTime <= amaEndTime,
+        isUpcoming: nowTime < amaStartTime,
+        isCompleted: nowTime > amaEndTime
+      });
+      
+      if (nowTime >= amaStartTime && nowTime <= amaEndTime) {
+        ama.status = 'live';
+      } else if (nowTime < amaStartTime) {
+        ama.status = 'upcoming';
+      } else {
+        ama.status = 'completed';
+      }
+    }
+    
     return NextResponse.json({ success: true, data: ama });
   } catch (error: any) {
     return NextResponse.json(

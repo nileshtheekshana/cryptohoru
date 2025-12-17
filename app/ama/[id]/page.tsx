@@ -170,6 +170,21 @@ export default async function AMADetailPage({ params }: { params: { id: string }
                 )}
               </div>
             </div>
+
+            {/* Pre-AMA Activities Section */}
+            {ama.preAMA && ama.status === 'upcoming' && ama.preAMADetails && (
+              <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">🎯</span>
+                  <h3 className="text-xl font-bold text-purple-900 dark:text-purple-200">
+                    Pre-AMA Activities Available
+                  </h3>
+                </div>
+                <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                  {ama.preAMADetails}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

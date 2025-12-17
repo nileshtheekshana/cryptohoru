@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Airdrop } from '@/models';
 import { generateUniqueSlug } from '@/lib/generateSlug';
+import { sendNewContentToChannel, generateAirdropPost } from '@/lib/telegram';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,16 @@ export async function POST(request: NextRequest) {
     const slug = generateUniqueSlug(body.title, airdrop._id.toString());
     airdrop.slug = slug;
     await airdrop.save();
+    
+    // Send Telegram notification to channel
+    try {
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://cryptohoru.com';
+      const message = generateAirdropPost(airdrop.toObject(), baseUrl);
+      await sendNewContentToChannel(message);
+    } catch (error) {
+      console.error('Failed to send Telegram notification:', error);
+      // Don't fail the request if Telegram fails
+    }
     
     return NextResponse.json(
       { success: true, data: airdrop },

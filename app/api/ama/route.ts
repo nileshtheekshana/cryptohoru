@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { AMA } from '@/models';
 import { generateUniqueSlug } from '@/lib/generateSlug';
+import { sendNewContentToChannel, generateAMAPost } from '@/lib/telegram';
 
 export const runtime = 'nodejs';
 
@@ -137,6 +138,29 @@ export async function POST(request: NextRequest) {
     const slug = generateUniqueSlug(body.title, ama._id.toString());
     ama.slug = slug;
     await ama.save();
+    
+    // Send Telegram notification to channel
+    try {
+      console.log('=== TELEGRAM NOTIFICATION DEBUG ===');
+      console.log('AMA created:', ama.title);
+      console.log('NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
+      console.log('TELEGRAM_BOT:', process.env.TELEGRAM_BOT ? 'SET' : 'NOT SET');
+      console.log('TELEGRAM_CHANNEL:', process.env.TELEGRAM_CHANNEL);
+      
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://cryptohoru.com';
+      const message = generateAMAPost(ama.toObject(), baseUrl);
+      
+      console.log('Generated message:', message);
+      console.log('Sending to channel...');
+      
+      const result = await sendNewContentToChannel(message);
+      
+      console.log('Send result:', result);
+      console.log('=== END TELEGRAM DEBUG ===');
+    } catch (error) {
+      console.error('Failed to send Telegram notification:', error);
+      // Don't fail the request if Telegram fails
+    }
     
     return NextResponse.json(
       { success: true, data: ama },

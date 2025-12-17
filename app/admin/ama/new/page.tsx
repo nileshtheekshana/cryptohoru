@@ -21,14 +21,17 @@ export default function NewAMAPage() {
     imageUrl: '',
     image: '',
     status: 'upcoming',
+    preAMA: false,
+    preAMADetails: '',
   });
   const [createdItem, setCreatedItem] = useState<any | null>(null);
   const [snippet, setSnippet] = useState('');
   const [showSnippet, setShowSnippet] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type } = e.target;
+    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -246,6 +249,38 @@ export default function NewAMAPage() {
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                 placeholder="https://..."
               />
+            </div>
+
+            {/* Pre-AMA Activities */}
+            <div className="border border-purple-300 dark:border-purple-700 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
+              <div className="flex items-center gap-3 mb-3">
+                <input
+                  type="checkbox"
+                  id="preAMA"
+                  name="preAMA"
+                  checked={formData.preAMA}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                />
+                <label htmlFor="preAMA" className="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                  🎯 Has Pre-AMA Activities
+                </label>
+              </div>
+              {formData.preAMA && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Pre-AMA Details
+                  </label>
+                  <textarea
+                    name="preAMADetails"
+                    value={formData.preAMADetails}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Describe the pre-AMA activities (e.g., Follow on Twitter, Join Telegram, etc.)"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Status */}
