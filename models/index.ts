@@ -204,5 +204,3 @@ export const P2EGame = mongoose.models?.P2EGame || model('P2EGame', P2EGameSchem
 export const News = mongoose.models?.News || model('News', NewsSchema);
 export const User = mongoose.models?.User || model('User', UserSchema);
 export const APIKey = mongoose.models?.APIKey || model('APIKey', APIKeySchema);
-export const News = mongoose.models?.News || model('News', NewsSchema);
-export const User = mongoose.models?.User || model('User', UserSchema);

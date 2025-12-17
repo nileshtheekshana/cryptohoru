@@ -66,19 +66,31 @@ export default function APIDocsPage() {
               <h4 className="font-bold text-gray-800 dark:text-white mb-2">Request Body:</h4>
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4">
                 <pre>{`{
-  "name": "SuperToken Airdrop",
+  "title": "SuperToken Airdrop",
   "description": "Get 1000 SUPER tokens by completing tasks",
-  "requirements": ["Follow on Twitter", "Join Telegram", "Verify wallet"],
-  "totalPrize": "100,000 SUPER",
-  "endDate": "2025-12-31T23:59:59Z",
-  "chain": "Ethereum",
-  "tags": ["DeFi", "Token"],
-  "socialLinks": {
-    "twitter": "https://twitter.com/supertoken",
-    "telegram": "https://t.me/supertoken"
-  },
   "image": "/images/super-airdrop.jpg",
-  "slug": "supertoken-airdrop" // Optional, auto-generated from name
+  "reward": "100,000 SUPER",
+  "blockchain": "Ethereum",
+  "status": "active",
+  "startDate": "2025-12-17T00:00:00Z",
+  "endDate": "2025-12-31T23:59:59Z",
+  "requirements": ["Follow on Twitter", "Join Telegram", "Verify wallet"],
+  "tasks": [
+    {
+      "title": "Follow Twitter",
+      "description": "Follow @supertoken on Twitter",
+      "type": "social",
+      "reward": "100 SUPER",
+      "link": "https://twitter.com/supertoken",
+      "order": 0
+    }
+  ],
+  "tags": ["DeFi", "Token"],
+  "website": "https://supertoken.io",
+  "twitter": "https://twitter.com/supertoken",
+  "telegram": "https://t.me/supertoken",
+  "discord": "https://discord.gg/supertoken",
+  "slug": "supertoken-airdrop"
 }`}</pre>
               </div>
 
@@ -106,15 +118,19 @@ export default function APIDocsPage() {
               
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4">
                 <pre>{`{
-  "project": "SuperToken",
+  "title": "SuperToken AMA Session",
   "description": "Join us for an exciting AMA session!",
-  "datetime": "2025-12-25T18:00:00Z",
-  "chain": "Ethereum",
-  "tags": ["DeFi"],
-  "socialLinks": {
-    "twitter": "https://twitter.com/supertoken"
-  },
   "image": "/images/super-ama.jpg",
+  "project": "SuperToken",
+  "host": "John Doe, CEO",
+  "date": "2025-12-25T18:00:00Z",
+  "platform": "Twitter Spaces",
+  "link": "https://twitter.com/i/spaces/xxx",
+  "rewards": "1000 SUPER tokens for participants",
+  "preAMA": true,
+  "preAMADetails": "Submit questions in Telegram before the event",
+  "status": "upcoming",
+  "tags": ["DeFi", "AMA"],
   "slug": "supertoken-ama-december"
 }`}</pre>
               </div>
@@ -133,13 +149,15 @@ export default function APIDocsPage() {
                 <pre>{`{
   "title": "5 ETH Giveaway",
   "description": "Win 1 ETH by completing simple tasks!",
+  "image": "/images/eth-giveaway.jpg",
   "prize": "5 ETH",
-  "requirements": ["Follow Twitter", "Retweet pinned post"],
+  "winners": 5,
   "endDate": "2025-12-31T23:59:59Z",
-  "chain": "Ethereum",
-  "tags": ["Giveaway"],
-  "socialLinks": {},
-  "image": "/images/eth-giveaway.jpg"
+  "status": "active",
+  "requirements": ["Follow Twitter", "Retweet pinned post", "Tag 3 friends"],
+  "tasks": [],
+  "link": "https://twitter.com/cryptohoru",
+  "tags": ["Giveaway", "ETH"]
 }`}</pre>
               </div>
             </div>
@@ -158,9 +176,12 @@ export default function APIDocsPage() {
   "title": "Top 10 Crypto Trends in 2025",
   "content": "Full markdown content here...",
   "excerpt": "A brief summary of the article",
+  "image": "/images/crypto-trends.jpg",
+  "imageUrl": "https://example.com/image.jpg",
   "author": "AI Writer",
-  "tags": ["Trends", "Analysis"],
-  "image": "/images/crypto-trends.jpg"
+  "category": "Analysis",
+  "tags": ["Trends", "Analysis", "2025"],
+  "published": true
 }`}</pre>
               </div>
             </div>
@@ -178,10 +199,14 @@ export default function APIDocsPage() {
                 <pre>{`{
   "title": "Bitcoin Hits New All-Time High",
   "content": "Full article content here...",
-  "excerpt": "Short summary",
+  "image": "/images/btc-ath.jpg",
+  "imageUrl": "https://example.com/btc.jpg",
+  "author": "Crypto Reporter",
   "source": "CryptoNews",
-  "tags": ["Bitcoin", "Market"],
-  "image": "/images/btc-ath.jpg"
+  "sourceUrl": "https://cryptonews.com/article",
+  "category": "Market",
+  "tags": ["Bitcoin", "Market", "ATH"],
+  "published": true
 }`}</pre>
               </div>
             </div>
@@ -197,18 +222,26 @@ export default function APIDocsPage() {
               
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4">
                 <pre>{`{
-  "name": "CryptoQuest",
+  "title": "CryptoQuest",
   "description": "Epic RPG game with blockchain rewards",
-  "genre": "RPG",
-  "platform": "PC, Mobile",
+  "image": "/images/cryptoquest.jpg",
+  "imageUrl": "https://example.com/cq.jpg",
   "blockchain": "Polygon",
+  "gameType": "RPG",
+  "genre": "Adventure",
   "tokenSymbol": "QUEST",
-  "playLink": "https://cryptoquest.game",
-  "socialLinks": {
-    "twitter": "https://twitter.com/cryptoquest"
-  },
-  "tags": ["RPG", "Adventure"],
-  "image": "/images/cryptoquest.jpg"
+  "earnings": "100-500 QUEST per day",
+  "playToEarnMechanism": "Battle monsters, complete quests, earn tokens",
+  "playLink": "https://cryptoquest.game/play",
+  "websiteUrl": "https://cryptoquest.game",
+  "status": "active",
+  "website": "https://cryptoquest.game",
+  "twitter": "https://twitter.com/cryptoquest",
+  "discord": "https://discord.gg/cryptoquest",
+  "whitepaper": "https://cryptoquest.game/whitepaper.pdf",
+  "requirements": ["Web3 wallet", "Minimum 10 MATIC"],
+  "features": ["PvP battles", "NFT items", "Guild system"],
+  "tags": ["RPG", "Adventure", "NFT"]
 }`}</pre>
               </div>
             </div>
@@ -272,16 +305,29 @@ headers = {
 
 # Create an airdrop
 airdrop_data = {
-    "name": "SuperToken Airdrop",
-    "description": "Get 1000 SUPER tokens",
-    "requirements": ["Follow Twitter", "Join Telegram"],
-    "totalPrize": "100,000 SUPER",
+    "title": "SuperToken Airdrop",
+    "description": "Get 1000 SUPER tokens by completing tasks",
+    "image": "/images/super-airdrop.jpg",
+    "reward": "100,000 SUPER",
+    "blockchain": "Ethereum",
+    "status": "active",
+    "startDate": datetime.now().isoformat() + "Z",
     "endDate": (datetime.now() + timedelta(days=30)).isoformat() + "Z",
-    "chain": "Ethereum",
-    "tags": ["DeFi"],
-    "socialLinks": {
-        "twitter": "https://twitter.com/supertoken"
-    }
+    "requirements": ["Follow Twitter", "Join Telegram", "Verify wallet"],
+    "tasks": [
+        {
+            "title": "Follow Twitter",
+            "description": "Follow @supertoken on Twitter",
+            "type": "social",
+            "reward": "100 SUPER",
+            "link": "https://twitter.com/supertoken",
+            "order": 0
+        }
+    ],
+    "tags": ["DeFi", "Token"],
+    "website": "https://supertoken.io",
+    "twitter": "https://twitter.com/supertoken",
+    "telegram": "https://t.me/supertoken"
 }
 
 response = requests.post(

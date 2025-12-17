@@ -42,12 +42,15 @@ curl -X POST https://cryptohoru.com/api/v1/airdrops \
   -H "X-API-Key: ck_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "SuperToken Airdrop",
+    "title": "SuperToken Airdrop",
     "description": "Get 1000 SUPER tokens by completing tasks",
-    "requirements": ["Follow on Twitter", "Join Telegram"],
-    "totalPrize": "100,000 SUPER",
+    "reward": "100,000 SUPER",
+    "blockchain": "Ethereum",
     "endDate": "2025-12-31T23:59:59Z",
-    "chain": "Ethereum"
+    "requirements": ["Follow on Twitter", "Join Telegram"],
+    "tags": ["DeFi", "Token"],
+    "website": "https://supertoken.io",
+    "twitter": "https://twitter.com/supertoken"
   }'
 ```
 
@@ -97,16 +100,18 @@ headers = {
 
 # Create an airdrop
 airdrop_data = {
-    "name": "SuperToken Airdrop",
-    "description": "Get 1000 SUPER tokens",
-    "requirements": ["Follow Twitter", "Join Telegram"],
-    "totalPrize": "100,000 SUPER",
+    "title": "SuperToken Airdrop",
+    "description": "Get 1000 SUPER tokens by completing tasks",
+    "reward": "100,000 SUPER",
+    "blockchain": "Ethereum",
+    "startDate": datetime.now().isoformat() + "Z",
     "endDate": (datetime.now() + timedelta(days=30)).isoformat() + "Z",
-    "chain": "Ethereum",
-    "tags": ["DeFi"],
-    "socialLinks": {
-        "twitter": "https://twitter.com/supertoken"
-    }
+    "requirements": ["Follow Twitter", "Join Telegram", "Verify wallet"],
+    "tasks": [],
+    "tags": ["DeFi", "Token"],
+    "website": "https://supertoken.io",
+    "twitter": "https://twitter.com/supertoken",
+    "telegram": "https://t.me/supertoken"
 }
 
 response = requests.post(
@@ -135,13 +140,16 @@ async function createAirdrop() {
     const response = await axios.post(
       `${BASE_URL}/airdrops`,
       {
-        name: 'SuperToken Airdrop',
-        description: 'Get 1000 SUPER tokens',
-        requirements: ['Follow Twitter', 'Join Telegram'],
-        totalPrize: '100,000 SUPER',
+        title: 'SuperToken Airdrop',
+        description: 'Get 1000 SUPER tokens by completing tasks',
+        reward: '100,000 SUPER',
+        blockchain: 'Ethereum',
+        startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        chain: 'Ethereum',
-        tags: ['DeFi'],
+        requirements: ['Follow Twitter', 'Join Telegram', 'Verify wallet'],
+        tags: ['DeFi', 'Token'],
+        website: 'https://supertoken.io',
+        twitter: 'https://twitter.com/supertoken',
       },
       {
         headers: {
@@ -176,17 +184,16 @@ def ai_to_cryptohoru(ai_analyzed_data):
     
     # AI extracts key info
     airdrop_info = {
-        "name": ai_analyzed_data["project_name"],
+        "title": ai_analyzed_data["project_name"],
         "description": ai_analyzed_data["summary"],
-        "requirements": ai_analyzed_data["steps"],
-        "totalPrize": ai_analyzed_data["reward"],
+        "reward": ai_analyzed_data["reward"],
+        "blockchain": ai_analyzed_data["blockchain"],
         "endDate": ai_analyzed_data["deadline"],
-        "chain": ai_analyzed_data["blockchain"],
+        "requirements": ai_analyzed_data["steps"],
         "tags": ai_analyzed_data["categories"],
-        "socialLinks": {
-            "twitter": ai_analyzed_data.get("twitter_url"),
-            "telegram": ai_analyzed_data.get("telegram_url")
-        }
+        "website": ai_analyzed_data.get("website_url"),
+        "twitter": ai_analyzed_data.get("twitter_url"),
+        "telegram": ai_analyzed_data.get("telegram_url")
     }
     
     # Post to CryptoHoru

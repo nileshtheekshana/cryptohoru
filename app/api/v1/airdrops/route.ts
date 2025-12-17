@@ -16,22 +16,28 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      name,
+      title,
       description,
-      requirements,
-      tags,
-      totalPrize,
-      endDate,
-      chain,
-      socialLinks,
       image,
+      reward,
+      blockchain,
+      status,
+      startDate,
+      endDate,
+      requirements,
+      tasks,
+      tags,
+      website,
+      twitter,
+      telegram,
+      discord,
       slug,
     } = body;
 
     // Validate required fields
-    if (!name || !description || !requirements || !totalPrize || !endDate || !chain) {
+    if (!title || !description) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, description, requirements, totalPrize, endDate, chain' },
+        { error: 'Missing required fields: title, description' },
         { status: 400 }
       );
     }
@@ -40,7 +46,7 @@ export async function POST(request: NextRequest) {
     const db = client.db('cryptohoru');
 
     // Generate slug if not provided
-    const finalSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const finalSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     // Check if slug exists
     const existing = await db.collection('airdrops').findOne({ slug: finalSlug });
@@ -52,19 +58,25 @@ export async function POST(request: NextRequest) {
     }
 
     const newAirdrop = {
-      name,
+      title,
       description,
-      requirements: Array.isArray(requirements) ? requirements : [requirements],
+      image: image || '',
+      category: 'Airdrop',
+      reward: reward || '',
+      blockchain: blockchain || '',
+      status: status || 'active',
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      requirements: Array.isArray(requirements) ? requirements : (requirements ? [requirements] : []),
+      tasks: Array.isArray(tasks) ? tasks : [],
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
-      totalPrize,
-      endDate: new Date(endDate),
-      chain,
-      socialLinks: socialLinks || {},
-      image: image || '/default-airdrop.jpg',
+      website: website || '',
+      twitter: twitter || '',
+      telegram: telegram || '',
+      discord: discord || '',
       slug: finalSlug,
-      isActive: true,
-      createdBy: 'API',
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const result = await db.collection('airdrops').insertOne(newAirdrop);

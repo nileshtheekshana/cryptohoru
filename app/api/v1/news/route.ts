@@ -17,10 +17,14 @@ export async function POST(request: NextRequest) {
     const {
       title,
       content,
-      excerpt,
-      source,
-      tags,
       image,
+      imageUrl,
+      author,
+      source,
+      sourceUrl,
+      category,
+      tags,
+      published,
       slug,
     } = body;
 
@@ -50,14 +54,18 @@ export async function POST(request: NextRequest) {
     const newNews = {
       title,
       content,
-      excerpt: excerpt || content.substring(0, 200) + '...',
-      source: source || 'API',
+      image: image || '',
+      imageUrl: imageUrl || '',
+      author: author || 'CryptoHoru Team',
+      source: source || '',
+      sourceUrl: sourceUrl || '',
+      category: category || 'General',
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
-      image: image || '/default-news.jpg',
+      published: published !== undefined ? published : true,
+      views: 0,
       slug: finalSlug,
-      published: true,
-      createdBy: 'API',
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const result = await db.collection('news').insertOne(newNews);

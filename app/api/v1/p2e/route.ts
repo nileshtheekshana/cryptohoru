@@ -15,23 +15,34 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      name,
+      title,
       description,
-      genre,
-      platform,
-      blockchain,
-      tokenSymbol,
-      playLink,
-      socialLinks,
-      tags,
       image,
+      imageUrl,
+      blockchain,
+      gameType,
+      genre,
+      tokenSymbol,
+      earnings,
+      playToEarnMechanism,
+      playLink,
+      websiteUrl,
+      status,
+      website,
+      twitter,
+      discord,
+      whitepaper,
+      requirements,
+      features,
+      tasks,
+      tags,
       slug,
     } = body;
 
     // Validate required fields
-    if (!name || !description || !genre || !blockchain) {
+    if (!title || !description) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, description, genre, blockchain' },
+        { error: 'Missing required fields: title, description' },
         { status: 400 }
       );
     }
@@ -40,7 +51,7 @@ export async function POST(request: NextRequest) {
     const db = client.db('cryptohoru');
 
     // Generate slug if not provided
-    const finalSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const finalSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     // Check if slug exists
     const existing = await db.collection('p2egames').findOne({ slug: finalSlug });
@@ -52,20 +63,30 @@ export async function POST(request: NextRequest) {
     }
 
     const newP2E = {
-      name,
+      title,
       description,
-      genre,
-      platform: platform || 'Web',
-      blockchain,
+      image: image || '',
+      imageUrl: imageUrl || '',
+      blockchain: blockchain || '',
+      gameType: gameType || '',
+      genre: genre || '',
       tokenSymbol: tokenSymbol || '',
+      earnings: earnings || '',
+      playToEarnMechanism: playToEarnMechanism || '',
       playLink: playLink || '',
-      socialLinks: socialLinks || {},
+      websiteUrl: websiteUrl || '',
+      status: status || 'active',
+      website: website || '',
+      twitter: twitter || '',
+      discord: discord || '',
+      whitepaper: whitepaper || '',
+      requirements: Array.isArray(requirements) ? requirements : (requirements ? [requirements] : []),
+      features: Array.isArray(features) ? features : (features ? [features] : []),
+      tasks: Array.isArray(tasks) ? tasks : [],
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
-      image: image || '/default-p2e.jpg',
       slug: finalSlug,
-      featured: false,
-      createdBy: 'API',
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const result = await db.collection('p2egames').insertOne(newP2E);

@@ -18,20 +18,22 @@ export async function POST(request: NextRequest) {
     const {
       title,
       description,
-      prize,
-      requirements,
-      endDate,
-      chain,
-      tags,
-      socialLinks,
       image,
+      prize,
+      winners,
+      endDate,
+      status,
+      requirements,
+      tasks,
+      link,
+      tags,
       slug,
     } = body;
 
     // Validate required fields
-    if (!title || !description || !prize || !requirements || !endDate || !chain) {
+    if (!title || !description || !prize || !endDate) {
       return NextResponse.json(
-        { error: 'Missing required fields: title, description, prize, requirements, endDate, chain' },
+        { error: 'Missing required fields: title, description, prize, endDate' },
         { status: 400 }
       );
     }
@@ -54,17 +56,20 @@ export async function POST(request: NextRequest) {
     const newGiveaway = {
       title,
       description,
+      image: image || '',
       prize,
-      requirements: Array.isArray(requirements) ? requirements : [requirements],
+      winners: winners || 1,
       endDate: new Date(endDate),
-      chain,
+      status: status || 'active',
+      requirements: Array.isArray(requirements) ? requirements : (requirements ? [requirements] : []),
+      tasks: Array.isArray(tasks) ? tasks : [],
+      link: link || '',
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
-      socialLinks: socialLinks || {},
-      image: image || '/default-giveaway.jpg',
       slug: finalSlug,
-      status: 'active',
-      createdBy: 'API',
+      oneDayReminderSent: false,
+      oneHourReminderSent: false,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const result = await db.collection('giveaways').insertOne(newGiveaway);

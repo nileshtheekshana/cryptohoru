@@ -16,20 +16,26 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      project,
+      title,
       description,
-      datetime,
-      chain,
-      socialLinks,
-      tags,
       image,
+      project,
+      host,
+      date,
+      platform,
+      link,
+      rewards,
+      preAMA,
+      preAMADetails,
+      status,
+      tags,
       slug,
     } = body;
 
     // Validate required fields
-    if (!project || !description || !datetime || !chain) {
+    if (!title || !description || !project || !date) {
       return NextResponse.json(
-        { error: 'Missing required fields: project, description, datetime, chain' },
+        { error: 'Missing required fields: title, description, project, date' },
         { status: 400 }
       );
     }
@@ -38,7 +44,7 @@ export async function POST(request: NextRequest) {
     const db = client.db('cryptohoru');
 
     // Generate slug if not provided
-    const finalSlug = slug || project.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const finalSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     // Check if slug exists
     const existing = await db.collection('amas').findOne({ slug: finalSlug });
@@ -50,17 +56,23 @@ export async function POST(request: NextRequest) {
     }
 
     const newAMA = {
-      project,
+      title,
       description,
-      datetime: new Date(datetime),
-      chain,
-      socialLinks: socialLinks || {},
+      image: image || '',
+      project,
+      host: host || '',
+      date: new Date(date),
+      platform: platform || '',
+      link: link || '',
+      rewards: rewards || '',
+      preAMA: preAMA || false,
+      preAMADetails: preAMADetails || '',
+      status: status || 'upcoming',
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
-      image: image || '/default-ama.jpg',
       slug: finalSlug,
-      status: 'upcoming',
-      createdBy: 'API',
+      liveReminderSent: false,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const result = await db.collection('amas').insertOne(newAMA);
