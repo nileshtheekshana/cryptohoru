@@ -175,11 +175,34 @@ const UserSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+// API Key Schema
+const APIKeySchema = new Schema({
+  name: { type: String, required: true },
+  key: { type: String, required: true, unique: true },
+  description: { type: String },
+  permissions: [{
+    type: String,
+    enum: ['create:airdrop', 'create:ama', 'create:giveaway', 'create:blog', 'create:news', 'create:p2e'],
+    required: true
+  }],
+  status: { type: String, enum: ['active', 'revoked'], default: 'active' },
+  rateLimit: { type: Number, default: 100 }, // requests per day
+  usageCount: { type: Number, default: 0 },
+  lastUsed: { type: Date },
+  expiresAt: { type: Date }, // Optional expiration
+  createdBy: { type: String, default: 'admin' },
+  createdAt: { type: Date, default: Date.now },
+  revokedAt: { type: Date },
+});
+
 // Export models with safe checking using optional chaining
 export const Airdrop = mongoose.models?.Airdrop || model('Airdrop', AirdropSchema);
 export const AMA = mongoose.models?.AMA || model('AMA', AMASchema);
 export const Giveaway = mongoose.models?.Giveaway || model('Giveaway', GiveawaySchema);
 export const Blog = mongoose.models?.Blog || model('Blog', BlogSchema);
 export const P2EGame = mongoose.models?.P2EGame || model('P2EGame', P2EGameSchema);
+export const News = mongoose.models?.News || model('News', NewsSchema);
+export const User = mongoose.models?.User || model('User', UserSchema);
+export const APIKey = mongoose.models?.APIKey || model('APIKey', APIKeySchema);
 export const News = mongoose.models?.News || model('News', NewsSchema);
 export const User = mongoose.models?.User || model('User', UserSchema);

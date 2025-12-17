@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaParachuteBox, FaComments, FaGift, FaGamepad, FaNewspaper, FaBlog, FaPlus, FaTrash, FaEye, FaEdit, FaSync, FaShareAlt, FaCopy, FaTimes } from 'react-icons/fa';
+import { FaParachuteBox, FaComments, FaGift, FaGamepad, FaNewspaper, FaBlog, FaPlus, FaTrash, FaEye, FaEdit, FaSync, FaShareAlt, FaCopy, FaTimes, FaKey } from 'react-icons/fa';
 
 interface ContentCounts {
   airdrops: number;
@@ -214,8 +214,18 @@ export default function AdminPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8">
         <div className="container mx-auto px-6">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="opacity-90">Manage your content across all sections</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="opacity-90">Manage your content across all sections</p>
+            </div>
+            <Link
+              href="/admin/api-keys"
+              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2"
+            >
+              <FaKey /> API Keys
+            </Link>
+          </div>
         </div>
       </div>
 

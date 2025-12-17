@@ -1,0 +1,232 @@
+# CryptoHoru API v1
+
+External API for creating events programmatically on CryptoHoru.
+
+## Features
+
+✅ **API Key Authentication** - Secure access with rate limiting  
+✅ **Permission-based Access** - Granular control over what each key can do  
+✅ **Daily Rate Limits** - Prevents abuse (default: 100 requests/day)  
+✅ **Auto Telegram Notifications** - Posts are automatically shared to Telegram  
+✅ **Complete Event Support** - Airdrops, AMAs, Giveaways, Blog, News, P2E Games  
+
+## Quick Start
+
+### 1. Create an API Key
+
+1. Go to `/admin/api-keys`
+2. Click "Create API Key"
+3. Fill in details:
+   - Name (e.g., "AI Bot")
+   - Description (optional)
+   - Permissions (select what you need)
+   - Rate Limit (default: 100/day)
+   - Expiration (0 = never expires)
+4. **Copy the generated key immediately** - it won't be shown again!
+
+### 2. Use the API
+
+All API endpoints are under `/api/v1/`:
+
+- `POST /api/v1/airdrops` - Create airdrop
+- `POST /api/v1/ama` - Create AMA
+- `POST /api/v1/giveaways` - Create giveaway
+- `POST /api/v1/blog` - Create blog post
+- `POST /api/v1/news` - Create news article
+- `POST /api/v1/p2e` - Create P2E game
+
+### 3. Make a Request
+
+```bash
+curl -X POST https://cryptohoru.com/api/v1/airdrops \
+  -H "X-API-Key: ck_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SuperToken Airdrop",
+    "description": "Get 1000 SUPER tokens by completing tasks",
+    "requirements": ["Follow on Twitter", "Join Telegram"],
+    "totalPrize": "100,000 SUPER",
+    "endDate": "2025-12-31T23:59:59Z",
+    "chain": "Ethereum"
+  }'
+```
+
+## Permissions
+
+Each API key can have one or more permissions:
+
+- `create:airdrop` - Create airdrops
+- `create:ama` - Create AMAs
+- `create:giveaway` - Create giveaways
+- `create:blog` - Create blog posts
+- `create:news` - Create news articles
+- `create:p2e` - Create P2E games
+
+**Note:** API keys can only CREATE content, not DELETE or UPDATE.
+
+## Rate Limiting
+
+- Each API key has a daily rate limit (default: 100 requests)
+- Limits reset at midnight UTC
+- HTTP 429 returned when limit exceeded
+- Check usage in `/admin/api-keys`
+
+## Error Responses
+
+| Code | Meaning |
+|------|---------|
+| `401` | Invalid/missing API key, insufficient permissions, or expired key |
+| `400` | Missing required fields or invalid data |
+| `409` | Resource with same slug already exists |
+| `429` | Rate limit exceeded |
+| `500` | Server error |
+
+## Python Example
+
+```python
+import requests
+from datetime import datetime, timedelta
+
+API_KEY = "ck_your_api_key_here"
+BASE_URL = "https://cryptohoru.com/api/v1"
+
+headers = {
+    "X-API-Key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+# Create an airdrop
+airdrop_data = {
+    "name": "SuperToken Airdrop",
+    "description": "Get 1000 SUPER tokens",
+    "requirements": ["Follow Twitter", "Join Telegram"],
+    "totalPrize": "100,000 SUPER",
+    "endDate": (datetime.now() + timedelta(days=30)).isoformat() + "Z",
+    "chain": "Ethereum",
+    "tags": ["DeFi"],
+    "socialLinks": {
+        "twitter": "https://twitter.com/supertoken"
+    }
+}
+
+response = requests.post(
+    f"{BASE_URL}/airdrops",
+    headers=headers,
+    json=airdrop_data
+)
+
+if response.status_code == 200:
+    result = response.json()
+    print(f"✅ Airdrop created: {result['data']['url']}")
+else:
+    print(f"❌ Error: {response.json()['error']}")
+```
+
+## Node.js Example
+
+```javascript
+const axios = require('axios');
+
+const API_KEY = 'ck_your_api_key_here';
+const BASE_URL = 'https://cryptohoru.com/api/v1';
+
+async function createAirdrop() {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/airdrops`,
+      {
+        name: 'SuperToken Airdrop',
+        description: 'Get 1000 SUPER tokens',
+        requirements: ['Follow Twitter', 'Join Telegram'],
+        totalPrize: '100,000 SUPER',
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        chain: 'Ethereum',
+        tags: ['DeFi'],
+      },
+      {
+        headers: {
+          'X-API-Key': API_KEY,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('✅ Airdrop created:', response.data.data.url);
+  } catch (error) {
+    console.error('❌ Error:', error.response?.data?.error || error.message);
+  }
+}
+
+createAirdrop();
+```
+
+## AI Integration Example
+
+For AI-powered event posting (your use case):
+
+1. **Analyze Airdrops with AI** - Use your AI to scrape/analyze airdrop data
+2. **Format Data** - Convert AI output to API request format
+3. **Post via API** - Use API to automatically create events
+4. **Auto Telegram** - Events are automatically posted to your Telegram channel
+
+```python
+# Example: AI → CryptoHoru workflow
+def ai_to_cryptohoru(ai_analyzed_data):
+    """Convert AI-analyzed airdrop data to CryptoHoru format"""
+    
+    # AI extracts key info
+    airdrop_info = {
+        "name": ai_analyzed_data["project_name"],
+        "description": ai_analyzed_data["summary"],
+        "requirements": ai_analyzed_data["steps"],
+        "totalPrize": ai_analyzed_data["reward"],
+        "endDate": ai_analyzed_data["deadline"],
+        "chain": ai_analyzed_data["blockchain"],
+        "tags": ai_analyzed_data["categories"],
+        "socialLinks": {
+            "twitter": ai_analyzed_data.get("twitter_url"),
+            "telegram": ai_analyzed_data.get("telegram_url")
+        }
+    }
+    
+    # Post to CryptoHoru
+    response = requests.post(
+        f"{BASE_URL}/airdrops",
+        headers=headers,
+        json=airdrop_info
+    )
+    
+    return response.json()
+```
+
+## Documentation
+
+Full documentation available at: `/admin/api-docs`
+
+## Security Best Practices
+
+1. ✅ **Never commit API keys** to version control
+2. ✅ **Use environment variables** to store keys
+3. ✅ **Rotate keys regularly** for production use
+4. ✅ **Use separate keys** for different environments (dev/prod)
+5. ✅ **Monitor usage** in the admin panel
+6. ✅ **Revoke compromised keys** immediately
+
+## Admin Management
+
+Manage API keys at: `/admin/api-keys`
+
+Features:
+- Create new keys with custom permissions
+- View usage statistics
+- Revoke keys instantly
+- Monitor rate limit usage
+- Set expiration dates
+
+## Support
+
+For issues or questions, contact the admin team.
+
+---
+
+**Built with Next.js, MongoDB, and ❤️**
