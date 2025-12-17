@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
-import { sendTelegramNotification } from '@/lib/telegram';
+import { sendNewContentToChannel, generateGiveawayPost } from '@/lib/telegram';
+import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,6 +54,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Process tasks: add ObjectId to each task
+    const processedTasks = Array.isArray(tasks) 
+      ? tasks.map((task: any) => ({
+          _id: new ObjectId(),
+          title: task.title || '',
+          description: task.description || '',
+          type: task.type || 'social',
+          link: task.link || '',
+          reward: task.reward || ''
+        }))
+      : [];
+
     const newGiveaway = {
       title,
       description,
@@ -62,7 +75,7 @@ export async function POST(request: NextRequest) {
       endDate: new Date(endDate),
       status: status || 'active',
       requirements: Array.isArray(requirements) ? requirements : (requirements ? [requirements] : []),
-      tasks: Array.isArray(tasks) ? tasks : [],
+      tasks: processedTasks,
       link: link || '',
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
       slug: finalSlug,
@@ -76,10 +89,9 @@ export async function POST(request: NextRequest) {
 
     // Send Telegram notification
     try {
-      await sendTelegramNotification({
-        ...newGiveaway,
-        _id: result.insertedId,
-      }, 'giveaway');
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const message = generateGiveawayPost({ ...newGiveaway, _id: result.insertedId }, baseUrl);
+      await sendNewContentToChannel(message);
     } catch (telegramError) {
       console.error('Failed to send Telegram notification:', telegramError);
     }

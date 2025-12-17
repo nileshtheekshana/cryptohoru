@@ -47,10 +47,17 @@ const AMASchema = new Schema({
   host: { type: String },
   date: { type: Date, required: true },
   platform: { type: String },
-  link: { type: String },
+  link: { type: String }, // Main participation link (Twitter/X URL)
   rewards: { type: String },
   preAMA: { type: Boolean, default: false }, // Pre-AMA activities indicator
   preAMADetails: { type: String }, // Details about pre-AMA activities
+  tasks: [{ // Pre-AMA tasks array (similar to giveaway tasks)
+    title: { type: String, required: true },
+    description: { type: String },
+    type: { type: String, default: 'social' },
+    link: { type: String },
+    reward: { type: String }
+  }],
   status: { type: String, enum: ['upcoming', 'live', 'completed', 'hidden'], default: 'upcoming' },
   tags: [{ type: String }],
   liveReminderSent: { type: Boolean, default: false }, // Track live notification
@@ -161,6 +168,11 @@ const UserSchema = new Schema({
   }],
   completedGiveawayTasks: [{
     giveawayId: { type: Schema.Types.ObjectId, ref: 'Giveaway' },
+    taskId: { type: String },
+    completedAt: { type: Date, default: Date.now },
+  }],
+  completedAMATasks: [{
+    amaId: { type: Schema.Types.ObjectId, ref: 'AMA' },
     taskId: { type: String },
     completedAt: { type: Date, default: Date.now },
   }],

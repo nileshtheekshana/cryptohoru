@@ -42,6 +42,7 @@ export default function EditAMAPage({
     status: "upcoming",
     preAMA: false,
     preAMADetails: "",
+    tasks: [] as Array<{title: string, description: string, type: string, link: string, reward: string}>,
   });
 
   useEffect(() => {
@@ -78,6 +79,7 @@ export default function EditAMAPage({
         status: data.status || "upcoming",
         preAMA: data.preAMA || false,
         preAMADetails: data.preAMADetails || "",
+        tasks: data.tasks || [],
       });
       setLoading(false);
     } catch (error) {
@@ -131,6 +133,24 @@ export default function EditAMAPage({
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
+  };
+
+  const handleTaskChange = (index: number, field: string, value: string) => {
+    const newTasks = [...formData.tasks];
+    newTasks[index] = { ...newTasks[index], [field]: value };
+    setFormData({ ...formData, tasks: newTasks });
+  };
+
+  const addTask = () => {
+    setFormData({
+      ...formData,
+      tasks: [...formData.tasks, { title: '', description: '', type: 'social', link: '', reward: '' }],
+    });
+  };
+
+  const removeTask = (index: number) => {
+    const newTasks = formData.tasks.filter((_, i) => i !== index);
+    setFormData({ ...formData, tasks: newTasks });
   };
 
   if (loading) {
@@ -238,15 +258,16 @@ export default function EditAMAPage({
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-2">Join Link</label>
+              <label className="block text-gray-300 mb-2">Participation Link (Twitter/Platform URL)</label>
               <input
                 type="url"
                 name="link"
                 value={formData.link}
                 onChange={handleChange}
-                placeholder="https://..."
+                placeholder="https://twitter.com/... or platform URL"
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <p className="text-xs text-gray-500 mt-1">Main URL where users can participate in the AMA</p>
             </div>
 
             <div>
@@ -274,8 +295,8 @@ export default function EditAMAPage({
             </div>
 
             {/* Pre-AMA Activities */}
-            <div className="border border-purple-500 rounded-lg p-4 bg-purple-900/20">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="border border-purple-500 rounded-lg p-6 bg-purple-900/20">
+              <div className="flex items-center gap-3 mb-4">
                 <input
                   type="checkbox"
                   id="preAMA"
@@ -289,46 +310,89 @@ export default function EditAMAPage({
                 </label>
               </div>
               {formData.preAMA && (
-                <div>
-                  <label className="block text-gray-300 mb-2">Pre-AMA Details</label>
-                  <textarea
-                    name="preAMADetails"
-                    value={formData.preAMADetails}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Describe the pre-AMA activities (e.g., Follow on Twitter, Join Telegram, etc.)"
-                  />
-                </div>
-              )}
-            </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-300 mb-2">Pre-AMA Details Summary</label>
+                    <textarea
+                      name="preAMADetails"
+                      value={formData.preAMADetails}
+                      onChange={handleChange}
+                      rows={2}
+                      className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Brief description (e.g., Submit questions for 50 USDT reward)"
+                    />
+                  </div>
 
-            {/* Pre-AMA Activities */}
-            <div className="border border-purple-500 rounded-lg p-4 bg-purple-900/20">
-              <div className="flex items-center gap-3 mb-3">
-                <input
-                  type="checkbox"
-                  id="preAMA"
-                  name="preAMA"
-                  checked={formData.preAMA}
-                  onChange={handleChange}
-                  className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
-                />
-                <label htmlFor="preAMA" className="text-sm font-semibold text-gray-300 cursor-pointer">
-                  🎯 Has Pre-AMA Activities
-                </label>
-              </div>
-              {formData.preAMA && (
-                <div>
-                  <label className="block text-gray-300 mb-2">Pre-AMA Details</label>
-                  <textarea
-                    name="preAMADetails"
-                    value={formData.preAMADetails}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Describe the pre-AMA activities (e.g., Follow on Twitter, Join Telegram, etc.)"
-                  />
+                  {/* Pre-AMA Tasks */}
+                  <div className="border-t border-purple-600 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-sm font-semibold text-gray-300">
+                        Pre-AMA Tasks ({formData.tasks.length})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addTask}
+                        className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition"
+                      >
+                        + Add Task
+                      </button>
+                    </div>
+                    
+                    {formData.tasks.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic">
+                        No tasks added yet. Tasks are automatically extracted by Telegram bot or you can add them manually.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {formData.tasks.map((task, index) => (
+                          <div key={index} className="border border-purple-600 rounded-lg p-4 bg-gray-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-sm font-semibold text-gray-300">Task {index + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeTask(index)}
+                                className="text-red-400 hover:text-red-300 text-sm"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            <div className="space-y-3">
+                              <input
+                                type="text"
+                                value={task.title}
+                                onChange={(e) => handleTaskChange(index, 'title', e.target.value)}
+                                placeholder="Task title (e.g., Submit Your Question)"
+                                className="w-full px-3 py-2 text-sm bg-gray-700 text-white border border-gray-600 rounded focus:ring-2 focus:ring-purple-500"
+                              />
+                              <textarea
+                                value={task.description}
+                                onChange={(e) => handleTaskChange(index, 'description', e.target.value)}
+                                placeholder="Task description"
+                                rows={2}
+                                className="w-full px-3 py-2 text-sm bg-gray-700 text-white border border-gray-600 rounded focus:ring-2 focus:ring-purple-500"
+                              />
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  type="text"
+                                  value={task.link}
+                                  onChange={(e) => handleTaskChange(index, 'link', e.target.value)}
+                                  placeholder="Link URL (optional)"
+                                  className="w-full px-3 py-2 text-sm bg-gray-700 text-white border border-gray-600 rounded focus:ring-2 focus:ring-purple-500"
+                                />
+                                <input
+                                  type="text"
+                                  value={task.reward}
+                                  onChange={(e) => handleTaskChange(index, 'reward', e.target.value)}
+                                  placeholder="Reward (e.g., 50 USDT)"
+                                  className="w-full px-3 py-2 text-sm bg-gray-700 text-white border border-gray-600 rounded focus:ring-2 focus:ring-purple-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

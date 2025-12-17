@@ -19,13 +19,13 @@ interface TaskStatus {
   status: 'completed' | 'missed' | 'pending';
 }
 
-interface GiveawayTasksProps {
-  giveawayId: string;
+interface AMATasksProps {
+  amaId: string;
   tasks: Task[];
-  isGiveawayEnded: boolean;
+  isAMAEnded: boolean;
 }
 
-export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: GiveawayTasksProps) {
+export default function AMATasks({ amaId, tasks, isAMAEnded }: AMATasksProps) {
   const { data: session, status } = useSession();
   const [taskStatuses, setTaskStatuses] = useState<Record<string, 'completed' | 'missed' | 'pending'>>({});
   const [loading, setLoading] = useState(true);
@@ -37,11 +37,11 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
     } else {
       setLoading(false);
     }
-  }, [status, giveawayId]);
+  }, [status, amaId]);
 
   const fetchTaskStatuses = async () => {
     try {
-      const res = await fetch(`/api/users/giveaway-task-status?giveawayId=${giveawayId}`);
+      const res = await fetch(`/api/users/ama-task-status?amaId=${amaId}`);
       if (res.ok) {
         const data = await res.json();
         const statusMap: Record<string, 'completed' | 'missed' | 'pending'> = {};
@@ -63,8 +63,8 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
       return;
     }
 
-    if (isGiveawayEnded) {
-      alert('This giveaway has ended');
+    if (isAMAEnded) {
+      alert('This AMA has ended');
       return;
     }
 
@@ -73,7 +73,7 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
     try {
       if (currentStatus === 'completed') {
         // Unmark as completed
-        const res = await fetch(`/api/users/giveaway-task-status?giveawayId=${giveawayId}&taskId=${taskId}`, {
+        const res = await fetch(`/api/users/ama-task-status?amaId=${amaId}&taskId=${taskId}`, {
           method: 'DELETE',
         });
         
@@ -84,10 +84,10 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
         }
       } else {
         // Mark as completed
-        const res = await fetch('/api/users/giveaway-task-status', {
+        const res = await fetch('/api/users/ama-task-status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ giveawayId, taskId }),
+          body: JSON.stringify({ amaId, taskId }),
         });
         
         if (res.ok) {
@@ -136,7 +136,7 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Tasks to Complete ({tasks.length})
+          Pre-AMA Tasks ({tasks.length})
         </h2>
         {!session && (
           <Link
@@ -166,7 +166,7 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
               }`}
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-full flex items-center justify-center font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 rounded-full flex items-center justify-center font-bold">
                   {index + 1}
                 </div>
                 
@@ -199,7 +199,7 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
                         href={task.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+                        className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition text-sm font-medium"
                       >
                         Go to Task <FaExternalLinkAlt size={12} />
                       </a>
@@ -209,7 +209,7 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
                       status === 'completed' ? (
                         <button
                           onClick={() => handleToggleTask(task._id, status)}
-                          disabled={isProcessing || isGiveawayEnded}
+                          disabled={isProcessing || isAMAEnded}
                           className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isProcessing ? 'Updating...' : 'Mark Incomplete'}
@@ -217,7 +217,7 @@ export default function GiveawayTasks({ giveawayId, tasks, isGiveawayEnded }: Gi
                       ) : (
                         <button
                           onClick={() => handleToggleTask(task._id, status)}
-                          disabled={isProcessing || isGiveawayEnded}
+                          disabled={isProcessing || isAMAEnded}
                           className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isProcessing ? 'Updating...' : 'Mark as Complete'}

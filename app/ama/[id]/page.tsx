@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { FaArrowLeft, FaUsers, FaCalendar, FaLink, FaExternalLinkAlt } from 'react-icons/fa';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import AMADates from '@/components/AMADates';
+import AMATasks from '@/components/AMATasks';
 import type { Metadata } from 'next';
 import { stripMarkdown } from '@/lib/stripMarkdown';
 
@@ -75,6 +76,27 @@ export default async function AMADetailPage({ params }: { params: { id: string }
     notFound();
   }
 
+  // Calculate dynamic status based on date
+  const getAMAStatus = (date: string, status: string): 'upcoming' | 'live' | 'completed' => {
+    const now = new Date();
+    const amaDate = new Date(date);
+    
+    // If manually set as completed or live, respect that
+    if (status === 'completed' || status === 'live') {
+      return status as 'live' | 'completed';
+    }
+    
+    // Check if AMA has passed
+    if (amaDate < now) {
+      return 'completed';
+    } else {
+      return 'upcoming';
+    }
+  };
+
+  const dynamicStatus = ama.date ? getAMAStatus(ama.date, ama.status) : ama.status;
+  const isAMAEnded = dynamicStatus === 'completed';
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-8">
@@ -108,17 +130,28 @@ export default async function AMADetailPage({ params }: { params: { id: string }
               </h2>
               <MarkdownRenderer content={ama.description} />
 
-              {ama.platformLink && (
+              {ama.link && (
                 <a
-                  href={ama.platformLink}
+                  href={ama.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition font-semibold"
+                  className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition font-semibold mt-6"
                 >
-                  Join AMA Session <FaExternalLinkAlt />
+                  Participate in AMA <FaExternalLinkAlt />
                 </a>
               )}
             </div>
+
+            {/* Pre-AMA Tasks Section */}
+            {ama.tasks && ama.tasks.length > 0 && (
+              <div className="mt-8">
+                <AMATasks 
+                  amaId={ama._id}
+                  tasks={ama.tasks}
+                  isAMAEnded={isAMAEnded}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -130,13 +163,13 @@ export default async function AMADetailPage({ params }: { params: { id: string }
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Status</p>
                   <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                    ama.status === 'live'
+                    dynamicStatus === 'live'
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                      : ama.status === 'upcoming'
+                      : dynamicStatus === 'upcoming'
                       ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                       : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                   }`}>
-                    {ama.status.charAt(0).toUpperCase() + ama.status.slice(1)}
+                    {dynamicStatus.charAt(0).toUpperCase() + dynamicStatus.slice(1)}
                   </span>
                 </div>
 
@@ -172,7 +205,7 @@ export default async function AMADetailPage({ params }: { params: { id: string }
             </div>
 
             {/* Pre-AMA Activities Section */}
-            {ama.preAMA && ama.status === 'upcoming' && ama.preAMADetails && (
+            {ama.preAMA && dynamicStatus === 'upcoming' && ama.preAMADetails && (
               <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-xl shadow-lg p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-2xl">🎯</span>

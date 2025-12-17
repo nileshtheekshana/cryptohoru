@@ -36,8 +36,23 @@ export default function AMAClientList({
   const [upcomingAMAs, setUpcomingAMAs] = useState<AMA[]>(initialUpcomingAMAs);
   const [endedAMAs, setEndedAMAs] = useState<AMA[]>(initialCompletedAMAs);
   const [endedPage, setEndedPage] = useState(1);
-  const [endedTotal, setEndedTotal] = useState(initialCompletedAMAs.length);
+  const [endedTotal, setEndedTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  // Fetch total count on mount
+  useEffect(() => {
+    async function fetchTotalCount() {
+      try {
+        const res = await fetch('/api/ama?status=completed&page=1&limit=6', { cache: 'no-store' });
+        const data = await res.json();
+        setEndedTotal(data.pagination?.total || initialCompletedAMAs.length);
+      } catch (error) {
+        console.error('Error fetching total count:', error);
+        setEndedTotal(initialCompletedAMAs.length);
+      }
+    }
+    fetchTotalCount();
+  }, []);
 
   useEffect(() => {
     // Only fetch when page changes (for pagination)

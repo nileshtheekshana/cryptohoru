@@ -17,12 +17,13 @@ export default function NewAMAPage() {
     date: '',
     time: '',
     platform: '',
-    platformLink: '',
+    link: '',
     imageUrl: '',
     image: '',
     status: 'upcoming',
     preAMA: false,
     preAMADetails: '',
+    tasks: [] as Array<{title: string, description: string, type: string, link: string, reward: string}>,
   });
   const [createdItem, setCreatedItem] = useState<any | null>(null);
   const [snippet, setSnippet] = useState('');
@@ -32,6 +33,24 @@ export default function NewAMAPage() {
     const { name, value, type } = e.target;
     const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
     setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+  };
+
+  const handleTaskChange = (index: number, field: string, value: string) => {
+    const newTasks = [...formData.tasks];
+    newTasks[index] = { ...newTasks[index], [field]: value };
+    setFormData({ ...formData, tasks: newTasks });
+  };
+
+  const addTask = () => {
+    setFormData({
+      ...formData,
+      tasks: [...formData.tasks, { title: '', description: '', type: 'social', link: '', reward: '' }],
+    });
+  };
+
+  const removeTask = (index: number) => {
+    const newTasks = formData.tasks.filter((_, i) => i !== index);
+    setFormData({ ...formData, tasks: newTasks });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -220,20 +239,21 @@ export default function NewAMAPage() {
               />
             </div>
 
-            {/* Platform Link */}
+            {/* Participation Link (Twitter/Platform URL) */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Platform Link *
+                Participation Link (Twitter/Platform URL) *
               </label>
               <input
                 type="url"
-                name="platformLink"
-                value={formData.platformLink}
+                name="link"
+                value={formData.link}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                placeholder="https://..."
+                placeholder="https://twitter.com/... or platform URL"
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Main URL where users can participate in the AMA</p>
             </div>
 
             {/* Image URL */}
@@ -252,8 +272,8 @@ export default function NewAMAPage() {
             </div>
 
             {/* Pre-AMA Activities */}
-            <div className="border border-purple-300 dark:border-purple-700 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="border border-purple-300 dark:border-purple-700 rounded-lg p-6 bg-purple-50 dark:bg-purple-900/20">
+              <div className="flex items-center gap-3 mb-4">
                 <input
                   type="checkbox"
                   id="preAMA"
@@ -267,18 +287,91 @@ export default function NewAMAPage() {
                 </label>
               </div>
               {formData.preAMA && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Pre-AMA Details
-                  </label>
-                  <textarea
-                    name="preAMADetails"
-                    value={formData.preAMADetails}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="Describe the pre-AMA activities (e.g., Follow on Twitter, Join Telegram, etc.)"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Pre-AMA Details Summary
+                    </label>
+                    <textarea
+                      name="preAMADetails"
+                      value={formData.preAMADetails}
+                      onChange={handleChange}
+                      rows={2}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="Brief description (e.g., Submit questions for 50 USDT reward)"
+                    />
+                  </div>
+
+                  {/* Pre-AMA Tasks */}
+                  <div className="border-t border-purple-200 dark:border-purple-700 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Pre-AMA Tasks ({formData.tasks.length})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addTask}
+                        className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition"
+                      >
+                        + Add Task
+                      </button>
+                    </div>
+                    
+                    {formData.tasks.length === 0 ? (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        No tasks added yet. Tasks are automatically extracted by Telegram bot or you can add them manually.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {formData.tasks.map((task, index) => (
+                          <div key={index} className="border border-purple-200 dark:border-purple-600 rounded-lg p-4 bg-white dark:bg-gray-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Task {index + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeTask(index)}
+                                className="text-red-600 hover:text-red-700 text-sm"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            <div className="space-y-3">
+                              <input
+                                type="text"
+                                value={task.title}
+                                onChange={(e) => handleTaskChange(index, 'title', e.target.value)}
+                                placeholder="Task title (e.g., Submit Your Question)"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                              />
+                              <textarea
+                                value={task.description}
+                                onChange={(e) => handleTaskChange(index, 'description', e.target.value)}
+                                placeholder="Task description"
+                                rows={2}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                              />
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  type="text"
+                                  value={task.link}
+                                  onChange={(e) => handleTaskChange(index, 'link', e.target.value)}
+                                  placeholder="Link URL (optional)"
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                                />
+                                <input
+                                  type="text"
+                                  value={task.reward}
+                                  onChange={(e) => handleTaskChange(index, 'reward', e.target.value)}
+                                  placeholder="Reward (e.g., 50 USDT)"
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

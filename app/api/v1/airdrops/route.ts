@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
-import { sendTelegramNotification } from '@/lib/telegram';
+import { sendNewContentToChannel, generateAirdropPost } from '@/lib/telegram';
+import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,6 +58,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Process tasks: add ObjectId to each task
+    const processedTasks = Array.isArray(tasks) 
+      ? tasks.map((task: any) => ({
+          _id: new ObjectId(),
+          title: task.title || '',
+          description: task.description || '',
+          type: task.type || 'social',
+          link: task.link || '',
+          reward: task.reward || ''
+        }))
+      : [];
+
     const newAirdrop = {
       title,
       description,
@@ -68,7 +81,7 @@ export async function POST(request: NextRequest) {
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       requirements: Array.isArray(requirements) ? requirements : (requirements ? [requirements] : []),
-      tasks: Array.isArray(tasks) ? tasks : [],
+      tasks: processedTasks,
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
       website: website || '',
       twitter: twitter || '',
@@ -83,10 +96,9 @@ export async function POST(request: NextRequest) {
 
     // Send Telegram notification
     try {
-      await sendTelegramNotification({
-        ...newAirdrop,
-        _id: result.insertedId,
-      }, 'airdrop');
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const message = generateAirdropPost({ ...newAirdrop, _id: result.insertedId }, baseUrl);
+      await sendNewContentToChannel(message);
     } catch (telegramError) {
       console.error('Failed to send Telegram notification:', telegramError);
       // Don't fail the request if Telegram fails

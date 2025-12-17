@@ -65,3 +65,9 @@ Thumbs.db
 # sensitive files
 pass.txt
 deploy.sh
+
+# telegram bot folder
+telegram-bot/
+
+# test scripts
+test-api.ps1

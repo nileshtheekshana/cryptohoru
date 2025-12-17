@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
-import { sendTelegramNotification } from '@/lib/telegram';
+import { sendNewContentToChannel, generateAMAPost } from '@/lib/telegram';
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,10 +79,9 @@ export async function POST(request: NextRequest) {
 
     // Send Telegram notification
     try {
-      await sendTelegramNotification({
-        ...newAMA,
-        _id: result.insertedId,
-      }, 'ama');
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const message = generateAMAPost({ ...newAMA, _id: result.insertedId }, baseUrl);
+      await sendNewContentToChannel(message);
     } catch (telegramError) {
       console.error('Failed to send Telegram notification:', telegramError);
     }
