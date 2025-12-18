@@ -39,6 +39,11 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     
+    // Clean up tasks - remove any empty or invalid tasks
+    if (body.tasks && Array.isArray(body.tasks)) {
+      body.tasks = body.tasks.filter((task: any) => task.title && task.title.trim() !== '');
+    }
+    
     // Create airdrop first to get the ID
     const airdrop = await Airdrop.create(body);
     
@@ -62,6 +67,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
+    console.error('Error creating airdrop:', error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 400 }

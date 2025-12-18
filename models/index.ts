@@ -3,7 +3,7 @@ import mongoose, { Schema, model } from 'mongoose';
 // Task Schema - for airdrop tasks that can be added over time
 const TaskSchema = new Schema({
   title: { type: String, required: true },
-  description: { type: String, required: true },
+  description: { type: String },
   type: { type: String, enum: ['social', 'transaction', 'verification', 'quiz', 'other'], default: 'other' },
   reward: { type: String },
   link: { type: String },

@@ -65,13 +65,16 @@ export default function NewAirdropPage() {
     setLoading(true);
 
     try {
+      // Filter out empty tasks
+      const validTasks = tasks.filter(task => task.title && task.title.trim() !== '');
+      
       const response = await fetch('/api/airdrops', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-          tasks,
+          tasks: validTasks,
         }),
       });
 
@@ -83,7 +86,9 @@ export default function NewAirdropPage() {
         setSnippet(snippetText);
         setShowSnippet(true);
       } else {
-        alert('Failed to create airdrop. Make sure MongoDB is connected.');
+        const error = await response.json();
+        alert(`Failed to create airdrop: ${error.error || 'Unknown error'}`);
+        console.error('API Error:', error);
       }
     } catch (error) {
       alert('Error creating airdrop. Check console for details.');
