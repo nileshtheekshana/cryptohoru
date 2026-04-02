@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
+import { processBase64Image } from '@/lib/imageProcessor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,12 +51,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const finalImage = await processBase64Image(image);
+    const finalImageUrl = await processBase64Image(imageUrl);
+
     const newBlog = {
       title,
       content,
       excerpt: excerpt || content.substring(0, 200) + '...',
-      image: image || '',
-      imageUrl: imageUrl || '',
+      image: finalImage || '',
+      imageUrl: finalImageUrl || '',
       author: author || 'CryptoHoru Team',
       category: category || 'General',
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),

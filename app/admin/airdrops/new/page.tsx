@@ -37,6 +37,8 @@ export default function NewAirdropPage() {
     telegram: '',
     discord: '',
     tags: '',
+    costTag: '',
+    cost: 'Free',
   });
 
   const addTask = () => {
@@ -73,7 +75,7 @@ export default function NewAirdropPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: [...formData.tags.split(',').map(t => t.trim()).filter(Boolean), formData.costTag].filter(Boolean),
           tasks: validTasks,
         }),
       });
@@ -231,6 +233,21 @@ export default function NewAirdropPage() {
               </div>
             </div>
 
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                  Cost (Text label)
+                </label>
+                <input
+                  type="text"
+                  value={formData.cost}
+                  onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="E.g., Free, $10, 0.1 ETH"
+                />
+              </div>
+            </div>
+
             {/* Social Links */}
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Social Links</h3>
@@ -289,17 +306,35 @@ export default function NewAirdropPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                Tags (comma separated)
-              </label>
-              <input
-                type="text"
-                value={formData.tags}
-                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="DeFi, NFT, GameFi"
-              />
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                  Cost Category
+                </label>
+                <select
+                  value={formData.costTag}
+                  onChange={(e) => setFormData({ ...formData, costTag: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">None / Unspecified</option>
+                  <option value="Free">Free (Totally free)</option>
+                  <option value="Free/Paid">Free/Paid (With or without money)</option>
+                  <option value="Paid">Paid (Requires money)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                  Other Tags (comma separated)
+                </label>
+                <input
+                  type="text"
+                  value={formData.tags}
+                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="DeFi, NFT, GameFi"
+                />
+              </div>
             </div>
 
             {/* Tasks Section */}

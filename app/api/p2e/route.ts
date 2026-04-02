@@ -13,6 +13,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const includeHidden = searchParams.get('includeHidden') === 'true';
+    const q = searchParams.get('q');
+    const tag = searchParams.get('tag');
     
     let filter: any = {};
     if (status) {
@@ -21,6 +23,14 @@ export async function GET(request: NextRequest) {
       // Exclude hidden items from public listing
       filter.status = { $ne: 'hidden' };
     }
+    
+    if (q) {
+      filter.title = { $regex: q, $options: 'i' };
+    }
+    if (tag) {
+      filter.tags = tag;
+    }
+    
     const games = await P2EGame.find(filter).sort({ createdAt: -1 });
     
     return NextResponse.json({ success: true, data: games });

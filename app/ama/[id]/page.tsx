@@ -201,6 +201,12 @@ export default async function AMADetailPage({ params }: { params: { id: string }
                     </div>
                   </div>
                 )}
+
+                {/* Cost */}
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cost</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{ama.cost || 'Free'}</p>
+                </div>
               </div>
             </div>
 

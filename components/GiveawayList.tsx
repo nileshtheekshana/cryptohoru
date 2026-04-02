@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaGift, FaCalendar, FaCheckCircle, FaChevronLeft, FaChevronRight, FaGlobe } from 'react-icons/fa';
+import { useSearchParams } from 'next/navigation';
+import { FaGift, FaCalendar, FaCheckCircle, FaChevronLeft, FaChevronRight, FaGlobe, FaTicketAlt } from 'react-icons/fa';
 import { useTimezone } from './TimezoneProvider';
 import { stripMarkdown } from '@/lib/stripMarkdown';
+import SearchAndFilter from './SearchAndFilter';
 
 interface Giveaway {
   _id: string;
@@ -16,7 +18,8 @@ interface Giveaway {
   prize: string;
   endDate: string;
   requirements: string[];
-  status: 'live' | 'upcoming' | 'ended';
+  cost?: string;
+  status: 'active' | 'live' | 'upcoming' | 'ended';
 }
 
 export default function GiveawayList() {
@@ -27,15 +30,24 @@ export default function GiveawayList() {
   const [endedPage, setEndedPage] = useState(1);
   const [endedTotal, setEndedTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  
+  const searchParams = useSearchParams();
+  const q = searchParams.get('q') || '';
+  const tag = searchParams.get('tag') || '';
 
   useEffect(() => {
     async function fetchGiveaways() {
       setLoading(true);
       try {
+        const queryParams = new URLSearchParams();
+        if (q) queryParams.set('q', q);
+        if (tag) queryParams.set('tag', tag);
+        const baseQuery = queryParams.toString() ? `&${queryParams.toString()}` : '';
+
         const [liveRes, upcomingRes, endedRes] = await Promise.all([
-          fetch('/api/giveaways?status=live', { cache: 'no-store' }),
-          fetch('/api/giveaways?status=upcoming&limit=100', { cache: 'no-store' }),
-          fetch(`/api/giveaways?status=ended&page=${endedPage}&limit=6`, { cache: 'no-store' })
+          fetch(`/api/giveaways?status=live${baseQuery}`, { cache: 'no-store' }),
+          fetch(`/api/giveaways?status=upcoming&limit=100${baseQuery}`, { cache: 'no-store' }),
+          fetch(`/api/giveaways?status=ended&page=${endedPage}&limit=6${baseQuery}`, { cache: 'no-store' })
         ]);
 
         const liveData = await liveRes.json();
@@ -54,7 +66,7 @@ export default function GiveawayList() {
     }
 
     fetchGiveaways();
-  }, [endedPage]);
+  }, [endedPage, q, tag]);
 
   const getGiveawayStatus = (giveaway: Giveaway): 'live' | 'upcoming' | 'ended' => {
     // Check if giveaway has ended
@@ -106,6 +118,10 @@ export default function GiveawayList() {
           <div className="flex items-center gap-2 text-sm">
             <FaCalendar className="text-green-500" />
             <span className="text-xs"><strong>Ends:</strong> {formatDateTime(giveaway.endDate)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <FaTicketAlt className="text-green-500" />
+            <span><strong>Cost:</strong> {giveaway.cost || 'Free'}</span>
           </div>
           
           <div className="flex gap-2 mb-4">
@@ -171,6 +187,8 @@ export default function GiveawayList() {
 
   return (
     <div className="space-y-12">
+      <SearchAndFilter hideStatusFilters={true} />
+      
       {/* Live Giveaways */}
       {liveGiveaways.length > 0 && (
         <div>

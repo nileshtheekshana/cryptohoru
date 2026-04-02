@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
+import { ObjectId } from 'mongodb';
+import { processBase64Image } from '@/lib/imageProcessor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +21,7 @@ export async function POST(request: NextRequest) {
       description,
       image,
       imageUrl,
+      cost,
       blockchain,
       gameType,
       genre,
@@ -62,11 +65,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const finalImage = await processBase64Image(image);
+    const finalImageUrl = await processBase64Image(imageUrl);
+
+    // Process tasks: add ObjectId to each task
+    const processedTasks = Array.isArray(tasks) 
+      ? tasks.map((task: any) => ({
+          _id: new ObjectId(),
+          title: task.title || '',
+          description: task.description || '',
+          type: task.type || 'social',
+          link: task.link || '',
+          reward: task.reward || ''
+        }))
+      : [];
+
     const newP2E = {
       title,
       description,
-      image: image || '',
-      imageUrl: imageUrl || '',
+      image: finalImage || '',
+      imageUrl: finalImageUrl || '',
+      cost: cost || 'Free',
       blockchain: blockchain || '',
       gameType: gameType || '',
       genre: genre || '',
@@ -82,7 +101,7 @@ export async function POST(request: NextRequest) {
       whitepaper: whitepaper || '',
       requirements: Array.isArray(requirements) ? requirements : (requirements ? [requirements] : []),
       features: Array.isArray(features) ? features : (features ? [features] : []),
-      tasks: Array.isArray(tasks) ? tasks : [],
+      tasks: processedTasks,
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
       slug: finalSlug,
       createdAt: new Date(),

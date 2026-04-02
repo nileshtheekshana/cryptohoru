@@ -12,7 +12,7 @@ interface MarkdownRendererProps {
 
 export default function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
   return (
-    <div className={`prose prose-lg dark:prose-invert max-w-none ${className}`}>
+    <div className={`prose prose-lg dark:prose-invert break-words overflow-hidden max-w-none ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
@@ -69,6 +69,18 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
           // Custom styling for paragraphs
           p: ({ node, ...props }) => (
             <p className="my-4 text-gray-700 dark:text-gray-300 leading-relaxed" {...props} />
+          ),
+          // Custom styling for tables to ensure mobile responsiveness
+          table: ({ node, ...props }) => (
+            <div className="overflow-x-auto w-full my-6">
+              <table className="min-w-full text-left border-collapse" {...props} />
+            </div>
+          ),
+          th: ({ node, ...props }) => (
+            <th className="border-b border-gray-300 dark:border-gray-700 p-3 font-bold bg-gray-50 dark:bg-gray-800" {...props} />
+          ),
+          td: ({ node, ...props }) => (
+            <td className="border-b border-gray-200 dark:border-gray-800 p-3" {...props} />
           ),
         }}
       >

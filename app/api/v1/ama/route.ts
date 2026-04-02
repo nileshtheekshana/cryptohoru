@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
 import { sendNewContentToChannel, generateAMAPost } from '@/lib/telegram';
+import { ObjectId } from 'mongodb';
+import { processBase64Image } from '@/lib/imageProcessor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +23,7 @@ export async function POST(request: NextRequest) {
       image,
       project,
       host,
+      cost,
       date,
       platform,
       link,
@@ -30,6 +33,7 @@ export async function POST(request: NextRequest) {
       status,
       tags,
       slug,
+      tasks,
     } = body;
 
     // Validate required fields
@@ -55,12 +59,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Process tasks: add ObjectId to each task
+    const processedTasks = Array.isArray(tasks) 
+      ? tasks.map((task: any) => ({
+          _id: new ObjectId(),
+          title: task.title || '',
+          description: task.description || '',
+          type: task.type || 'social',
+          link: task.link || '',
+          reward: task.reward || ''
+        }))
+      : [];
+
+    const finalImage = await processBase64Image(image);
+
     const newAMA = {
       title,
       description,
-      image: image || '',
+      image: finalImage || '',
       project,
       host: host || '',
+      cost: cost || 'Free',
       date: new Date(date),
       platform: platform || '',
       link: link || '',
@@ -69,6 +88,7 @@ export async function POST(request: NextRequest) {
       preAMADetails: preAMADetails || '',
       status: status || 'upcoming',
       tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
+      tasks: processedTasks,
       slug: finalSlug,
       liveReminderSent: false,
       createdAt: new Date(),

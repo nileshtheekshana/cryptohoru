@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FaGlobe, FaTwitter, FaTelegram, FaClock, FaCheckCircle, FaCalendar } from 'react-icons/fa';
+import { FaGlobe, FaTwitter, FaTelegram, FaClock, FaCheckCircle, FaCalendar, FaTicketAlt } from 'react-icons/fa';
 import { useTimezone } from './TimezoneProvider';
 import { stripMarkdown } from '@/lib/stripMarkdown';
 
@@ -24,6 +24,7 @@ interface Airdrop {
   reward?: string;
   blockchain?: string;
   category?: string;
+  cost?: string;
   startDate?: string;
   endDate?: string;
   website?: string;
@@ -113,6 +114,10 @@ export default function AirdropCardList({ airdrops }: AirdropCardListProps) {
                     <span className="text-xs">Ends: <strong>{formatDateTime(airdrop.endDate)}</strong></span>
                   </div>
                 )}
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <FaTicketAlt className="mr-2 text-purple-500 flex-shrink-0" />
+                  <span>Cost: <strong>{airdrop.cost || 'Free'}</strong></span>
+                </div>
               </div>
 
               {/* Tags */}

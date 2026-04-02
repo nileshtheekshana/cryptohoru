@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { FaGamepad, FaCoins, FaGlobe } from 'react-icons/fa';
+import { FaGamepad, FaCoins, FaGlobe, FaTicketAlt } from 'react-icons/fa';
 import type { Metadata } from 'next';
 import { stripMarkdown } from '@/lib/stripMarkdown';
+import SearchAndFilter from '@/components/SearchAndFilter';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +17,16 @@ export const metadata: Metadata = {
   },
 };
 
-async function getP2EGames() {
+async function getP2EGames(params: { q?: string; tag?: string; status?: string }) {
   try {
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/p2e`, { 
+    
+    const queryParams = new URLSearchParams();
+    if (params.status) queryParams.set('status', params.status);
+    if (params.q) queryParams.set('q', params.q);
+    if (params.tag) queryParams.set('tag', params.tag);
+    
+    const res = await fetch(`${baseUrl}/api/p2e?${queryParams.toString()}`, { 
       cache: 'no-store',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -32,8 +39,9 @@ async function getP2EGames() {
   }
 }
 
-export default async function P2EGamesPage() {
-  const games = await getP2EGames();
+export default async function P2EGamesPage({ searchParams }: { searchParams: Promise<{ q?: string; tag?: string; status?: string }> }) {
+  const params = await searchParams;
+  const games = await getP2EGames(params);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -47,6 +55,8 @@ export default async function P2EGamesPage() {
       </div>
 
       <div className="container mx-auto px-6 py-12">
+        <SearchAndFilter />
+        
         {games.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
@@ -99,6 +109,10 @@ export default async function P2EGamesPage() {
                   <div className="flex items-center gap-2">
                     <FaCoins className="text-orange-500" />
                     <span><strong>Earnings:</strong> {game.earnings}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaTicketAlt className="text-orange-500" />
+                    <span><strong>Cost:</strong> {game.cost || 'Free'}</span>
                   </div>
                 </div>
 

@@ -42,6 +42,7 @@ export default function EditAMAPage({
     status: "upcoming",
     preAMA: false,
     preAMADetails: "",
+    cost: "Free",
     tasks: [] as Array<{title: string, description: string, type: string, link: string, reward: string}>,
   });
 
@@ -79,6 +80,7 @@ export default function EditAMAPage({
         status: data.status || "upcoming",
         preAMA: data.preAMA || false,
         preAMADetails: data.preAMADetails || "",
+        cost: data.cost || "Free",
         tasks: data.tasks || [],
       });
       setLoading(false);
@@ -278,6 +280,18 @@ export default function EditAMAPage({
                 value={formData.rewards}
                 onChange={handleChange}
                 placeholder="e.g., $100 USDT"
+                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-300 mb-2">Cost (Text label)</label>
+              <input
+                type="text"
+                name="cost"
+                value={formData.cost}
+                onChange={handleChange}
+                placeholder="E.g., Free, $10, 0.1 ETH"
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

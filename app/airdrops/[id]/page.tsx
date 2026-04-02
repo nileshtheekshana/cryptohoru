@@ -198,6 +198,12 @@ export default async function AirdropDetailsPage({ params }: { params: Promise<{
                   </div>
                 )}
 
+                {/* Cost */}
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cost</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{airdrop.cost || 'Free'}</p>
+                </div>
+
                 {/* Dates */}
                 <AirdropDates startDate={airdrop.startDate} endDate={airdrop.endDate} />
               </div>

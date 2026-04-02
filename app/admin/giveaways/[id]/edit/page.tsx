@@ -35,6 +35,9 @@ export default function EditGiveawayPage({
     link: "",
     image: "",
     status: "active",
+    tags: "",
+    costTag: "",
+    cost: "Free",
   });
 
   useEffect(() => {
@@ -57,6 +60,9 @@ export default function EditGiveawayPage({
         link: data.link || "",
         image: data.image || data.imageUrl || "",
         status: data.status || "active",
+        tags: (data.tags || []).filter((t:string) => !['Free', 'Free/Paid', 'Paid'].includes(t)).join(', '),
+        costTag: (data.tags || []).find((t:string) => ['Free', 'Free/Paid', 'Paid'].includes(t)) || '',
+        cost: data.cost || "Free",
       });
       setLoading(false);
     } catch (error) {
@@ -77,6 +83,7 @@ export default function EditGiveawayPage({
         body: JSON.stringify({
           ...formData,
           requirements: formData.requirements.filter((r) => r.trim() !== ""),
+          tags: [...formData.tags.split(',').map((t:string) => t.trim()).filter(Boolean), formData.costTag].filter(Boolean),
         }),
       });
 
@@ -250,6 +257,46 @@ export default function EditGiveawayPage({
                 placeholder="https://..."
                 className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-gray-300 mb-2">Cost Category</label>
+                <select
+                  name="costTag"
+                  value={formData.costTag}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">None / Unspecified</option>
+                  <option value="Free">Free</option>
+                  <option value="Free/Paid">Free/Paid</option>
+                  <option value="Paid">Paid</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2">Cost (Text label)</label>
+                <input
+                  type="text"
+                  name="cost"
+                  value={formData.cost}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="E.g., Free, $10, 0.1 ETH"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Other Tags</label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. Crypto, Twitter"
+                />
+              </div>
             </div>
 
             <div>

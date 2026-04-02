@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaCalendar, FaUsers, FaLink, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaCalendar, FaUsers, FaLink, FaChevronLeft, FaChevronRight, FaTicketAlt } from 'react-icons/fa';
 import { stripMarkdown } from '@/lib/stripMarkdown';
 
 interface AMA {
@@ -14,6 +14,7 @@ interface AMA {
   project: string;
   date: string;
   platform?: string;
+  cost?: string;
   status: 'live' | 'upcoming' | 'completed';
 }
 
@@ -118,6 +119,10 @@ export default function AMAList() {
               <span className="truncate"><strong>Platform:</strong> {ama.platform}</span>
             </div>
           )}
+          <div className="flex items-center gap-2">
+            <FaTicketAlt className="text-purple-500 flex-shrink-0" />
+            <span className="truncate"><strong>Cost:</strong> {ama.cost || 'Free'}</span>
+          </div>
         </div>
 
         <div className="flex gap-2 mb-4">

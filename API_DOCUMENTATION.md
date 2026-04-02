@@ -29,13 +29,22 @@ External API for creating events programmatically on CryptoHoru.
 All API endpoints are under `/api/v1/`:
 
 - `POST /api/v1/airdrops` - Create airdrop
+- `PUT /api/v1/airdrops/:id` - Update airdrop
+- `DELETE /api/v1/airdrops/:id` - Delete airdrop
 - `POST /api/v1/ama` - Create AMA
 - `POST /api/v1/giveaways` - Create giveaway
+- `PUT /api/v1/giveaways/:id` - Update giveaway
+- `DELETE /api/v1/giveaways/:id` - Delete giveaway
 - `POST /api/v1/blog` - Create blog post
 - `POST /api/v1/news` - Create news article
 - `POST /api/v1/p2e` - Create P2E game
+- `PUT /api/v1/p2e/:id` - Update P2E game
+- `DELETE /api/v1/p2e/:id` - Delete P2E game
 
-### 3. Make a Request
+### 3. Image Uploads (Base64)
+You can directly send base64-encoded images (starting with `data:image/...`) in the `image` or `imageUrl` fields for `POST` and `PUT` endpoints. The API will automatically decode and save the image, storing only the final uploaded URL in the database.
+
+### 4. Make a Request
 
 ```bash
 curl -X POST https://cryptohoru.com/api/v1/airdrops \
@@ -44,6 +53,8 @@ curl -X POST https://cryptohoru.com/api/v1/airdrops \
   -d '{
     "title": "SuperToken Airdrop",
     "description": "Get 1000 SUPER tokens by completing tasks",
+    "category": "Airdrop",
+    "cost": "Free",
     "reward": "100,000 SUPER",
     "blockchain": "Ethereum",
     "endDate": "2025-12-31T23:59:59Z",
@@ -58,14 +69,12 @@ curl -X POST https://cryptohoru.com/api/v1/airdrops \
 
 Each API key can have one or more permissions:
 
-- `create:airdrop` - Create airdrops
-- `create:ama` - Create AMAs
-- `create:giveaway` - Create giveaways
-- `create:blog` - Create blog posts
-- `create:news` - Create news articles
-- `create:p2e` - Create P2E games
-
-**Note:** API keys can only CREATE content, not DELETE or UPDATE.
+- `create:airdrop`, `update:airdrop`, `delete:airdrop`
+- `create:ama`, `update:ama`, `delete:ama`
+- `create:giveaway`, `update:giveaway`, `delete:giveaway`
+- `create:blog`, `update:blog`, `delete:blog`
+- `create:news`, `update:news`, `delete:news`
+- `create:p2e`, `update:p2e`, `delete:p2e`
 
 ## Rate Limiting
 
@@ -102,6 +111,8 @@ headers = {
 airdrop_data = {
     "title": "SuperToken Airdrop",
     "description": "Get 1000 SUPER tokens by completing tasks",
+    "category": "Airdrop",
+    "cost": "Free",
     "reward": "100,000 SUPER",
     "blockchain": "Ethereum",
     "startDate": datetime.now().isoformat() + "Z",
@@ -142,6 +153,8 @@ async function createAirdrop() {
       {
         title: 'SuperToken Airdrop',
         description: 'Get 1000 SUPER tokens by completing tasks',
+        category: 'Airdrop',
+        cost: 'Free',
         reward: '100,000 SUPER',
         blockchain: 'Ethereum',
         startDate: new Date().toISOString(),

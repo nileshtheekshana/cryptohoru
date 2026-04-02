@@ -68,6 +68,8 @@ export default function APIDocsPage() {
                 <pre>{`{
   "title": "SuperToken Airdrop",
   "description": "Get 1000 SUPER tokens by completing tasks",
+  "category": "Airdrop",
+  "cost": "Free",
   "image": "/images/super-airdrop.jpg",
   "reward": "100,000 SUPER",
   "blockchain": "Ethereum",
@@ -121,6 +123,7 @@ export default function APIDocsPage() {
   "title": "SuperToken AMA Session",
   "description": "Join us for an exciting AMA session!",
   "image": "/images/super-ama.jpg",
+  "cost": "Free",
   "project": "SuperToken",
   "host": "John Doe, CEO",
   "date": "2025-12-25T18:00:00Z",
@@ -131,6 +134,15 @@ export default function APIDocsPage() {
   "preAMADetails": "Submit questions in Telegram before the event",
   "status": "upcoming",
   "tags": ["DeFi", "AMA"],
+  "tasks": [
+    {
+      "title": "Submit Your Question",
+      "description": "Drop a question in our Telegram group",
+      "type": "social",
+      "link": "https://t.me/supertoken",
+      "reward": "50 USDT"
+    }
+  ],
   "slug": "supertoken-ama-december"
 }`}</pre>
               </div>
@@ -150,12 +162,21 @@ export default function APIDocsPage() {
   "title": "5 ETH Giveaway",
   "description": "Win 1 ETH by completing simple tasks!",
   "image": "/images/eth-giveaway.jpg",
+  "cost": "Free",
   "prize": "5 ETH",
   "winners": 5,
   "endDate": "2025-12-31T23:59:59Z",
   "status": "active",
   "requirements": ["Follow Twitter", "Retweet pinned post", "Tag 3 friends"],
-  "tasks": [],
+  "tasks": [
+    {
+      "title": "Follow Twitter",
+      "description": "Follow @cryptohoru on Twitter",
+      "type": "social",
+      "link": "https://twitter.com/cryptohoru",
+      "reward": "1 Entry"
+    }
+  ],
   "link": "https://twitter.com/cryptohoru",
   "tags": ["Giveaway", "ETH"]
 }`}</pre>
@@ -226,6 +247,7 @@ export default function APIDocsPage() {
   "description": "Epic RPG game with blockchain rewards",
   "image": "/images/cryptoquest.jpg",
   "imageUrl": "https://example.com/cq.jpg",
+  "cost": "Free",
   "blockchain": "Polygon",
   "gameType": "RPG",
   "genre": "Adventure",
@@ -241,6 +263,15 @@ export default function APIDocsPage() {
   "whitepaper": "https://cryptoquest.game/whitepaper.pdf",
   "requirements": ["Web3 wallet", "Minimum 10 MATIC"],
   "features": ["PvP battles", "NFT items", "Guild system"],
+  "tasks": [
+    {
+      "title": "Play Now",
+      "description": "Start playing CryptoQuest",
+      "type": "other",
+      "link": "https://cryptoquest.game/play",
+      "reward": "10 QUEST"
+    }
+  ],
   "tags": ["RPG", "Adventure", "NFT"]
 }`}</pre>
               </div>

@@ -21,6 +21,7 @@ const AirdropSchema = new Schema({
   description: { type: String, required: true },
   image: { type: String },
   category: { type: String, default: 'Airdrop' },
+  cost: { type: String, default: 'Free' },
   reward: { type: String },
   blockchain: { type: String },
   status: { type: String, enum: ['active', 'upcoming', 'ended', 'hidden'], default: 'active' },
@@ -43,6 +44,7 @@ const AMASchema = new Schema({
   slug: { type: String, unique: true, sparse: true },
   description: { type: String, required: true },
   image: { type: String },
+  cost: { type: String, default: 'Free' },
   project: { type: String, required: true },
   host: { type: String },
   date: { type: Date, required: true },
@@ -71,6 +73,7 @@ const GiveawaySchema = new Schema({
   slug: { type: String, unique: true, sparse: true },
   description: { type: String, required: true },
   image: { type: String },
+  cost: { type: String, default: 'Free' },
   prize: { type: String, required: true },
   winners: { type: Number, default: 1 },
   endDate: { type: Date, required: true },
@@ -109,6 +112,7 @@ const P2EGameSchema = new Schema({
   description: { type: String, required: true },
   imageUrl: { type: String },
   image: { type: String },
+  cost: { type: String, default: 'Free' },
   blockchain: { type: String },
   gameType: { type: String },
   genre: { type: String },
@@ -194,7 +198,11 @@ const APIKeySchema = new Schema({
   description: { type: String },
   permissions: [{
     type: String,
-    enum: ['create:airdrop', 'create:ama', 'create:giveaway', 'create:blog', 'create:news', 'create:p2e'],
+    enum: [
+      'create:airdrop', 'create:ama', 'create:giveaway', 'create:blog', 'create:news', 'create:p2e',
+      'update:airdrop', 'update:ama', 'update:giveaway', 'update:blog', 'update:news', 'update:p2e',
+      'delete:airdrop', 'delete:ama', 'delete:giveaway', 'delete:blog', 'delete:news', 'delete:p2e'
+    ],
     required: true
   }],
   status: { type: String, enum: ['active', 'revoked'], default: 'active' },
@@ -207,6 +215,15 @@ const APIKeySchema = new Schema({
   revokedAt: { type: Date },
 });
 
+// Contact Message Schema
+const ContactMessageSchema = new Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
 // Export models with safe checking using optional chaining
 export const Airdrop = mongoose.models?.Airdrop || model('Airdrop', AirdropSchema);
 export const AMA = mongoose.models?.AMA || model('AMA', AMASchema);
@@ -216,3 +233,4 @@ export const P2EGame = mongoose.models?.P2EGame || model('P2EGame', P2EGameSchem
 export const News = mongoose.models?.News || model('News', NewsSchema);
 export const User = mongoose.models?.User || model('User', UserSchema);
 export const APIKey = mongoose.models?.APIKey || model('APIKey', APIKeySchema);
+export const ContactMessage = mongoose.models?.ContactMessage || model('ContactMessage', ContactMessageSchema);

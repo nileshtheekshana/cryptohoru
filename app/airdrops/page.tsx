@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 import connectDB from '@/lib/mongodb';
 import { Airdrop as AirdropModel } from '@/models';
 import AirdropCardList from '@/components/AirdropCardList';
+import SearchAndFilter from '@/components/SearchAndFilter';
 
 interface Task {
   _id?: string;
@@ -49,11 +50,22 @@ export const metadata: Metadata = {
   },
 };
 
-async function getAirdrops(): Promise<Airdrop[]> {
+async function getAirdrops(params: { q?: string; tag?: string; status?: string }): Promise<Airdrop[]> {
   try {
     await connectDB();
-    // Exclude hidden airdrops from public listing
-    const airdrops = await AirdropModel.find({ status: { $ne: 'hidden' } }).sort({ createdAt: -1 }).lean();
+    const filter: any = { status: { $ne: 'hidden' } };
+    
+    if (params.status) {
+      filter.status = params.status;
+    }
+    if (params.q) {
+      filter.title = { $regex: params.q, $options: 'i' };
+    }
+    if (params.tag) {
+      filter.tags = params.tag;
+    }
+
+    const airdrops = await AirdropModel.find(filter).sort({ createdAt: -1 }).lean();
     return JSON.parse(JSON.stringify(airdrops));
   } catch (error) {
     console.error('Error fetching airdrops:', error);
@@ -61,8 +73,9 @@ async function getAirdrops(): Promise<Airdrop[]> {
   }
 }
 
-export default async function AirdropsPage() {
-  const airdrops = await getAirdrops();
+export default async function AirdropsPage({ searchParams }: { searchParams: Promise<{ q?: string; tag?: string; status?: string }> }) {
+  const params = await searchParams;
+  const airdrops = await getAirdrops(params);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -78,20 +91,7 @@ export default async function AirdropsPage() {
 
       {/* Filters */}
       <div className="container mx-auto px-6 py-8">
-        <div className="flex flex-wrap gap-4 mb-8">
-          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-            All
-          </button>
-          <button className="px-6 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition border border-gray-300 dark:border-gray-600">
-            Active
-          </button>
-          <button className="px-6 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition border border-gray-300 dark:border-gray-600">
-            Upcoming
-          </button>
-          <button className="px-6 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition border border-gray-300 dark:border-gray-600">
-            Ended
-          </button>
-        </div>
+        <SearchAndFilter />
 
         {/* Airdrops Grid */}
         {airdrops.length === 0 ? (

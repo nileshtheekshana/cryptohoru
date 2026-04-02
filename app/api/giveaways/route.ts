@@ -13,6 +13,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const statusParam = searchParams.get('status');
     const includeHidden = searchParams.get('includeHidden') === 'true';
+    const q = searchParams.get('q');
+    const tag = searchParams.get('tag');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '100');
     const skip = (page - 1) * limit;
@@ -23,6 +25,13 @@ export async function GET(request: NextRequest) {
     // Exclude hidden items from public listing
     if (!includeHidden) {
       filter.status = { $ne: 'hidden' };
+    }
+
+    if (q) {
+      filter.title = { $regex: q, $options: 'i' };
+    }
+    if (tag) {
+      filter.tags = tag;
     }
     
     // Get all giveaways and calculate status

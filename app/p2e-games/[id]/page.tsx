@@ -181,13 +181,18 @@ export default async function P2EDetailPage({ params }: { params: { id: string }
                     </div>
                   </div>
                 )}
-
                 {game.earnings && (
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Potential Earnings</p>
                     <p className="font-semibold text-green-600 dark:text-green-400">{game.earnings}</p>
                   </div>
                 )}
+
+                {/* Cost */}
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cost</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{game.cost || 'Free'}</p>
+                </div>
               </div>
             </div>
           </div>

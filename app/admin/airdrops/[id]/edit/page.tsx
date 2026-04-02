@@ -21,6 +21,9 @@ export default function EditAirdropPage({ params }: { params: Promise<{ id: stri
     totalReward: '',
     endDate: '',
     requirements: [] as string[],
+    tags: [] as string[],
+    costTag: '',
+    cost: 'Free',
   });
   const [editTaskData, setEditTaskData] = useState({
     title: '',
@@ -57,6 +60,9 @@ export default function EditAirdropPage({ params }: { params: Promise<{ id: stri
           totalReward: data.data.totalReward,
           endDate: data.data.endDate ? new Date(data.data.endDate).toISOString().split('T')[0] : '',
           requirements: data.data.requirements || [],
+          tags: data.data.tags?.filter((t:string) => !['Free', 'Free/Paid', 'Paid'].includes(t)) || [],
+          costTag: data.data.tags?.find((t:string) => ['Free', 'Free/Paid', 'Paid'].includes(t)) || '',
+          cost: data.data.cost || 'Free',
         });
       } else {
         alert('Failed to load airdrop');
@@ -173,6 +179,8 @@ export default function EditAirdropPage({ params }: { params: Promise<{ id: stri
       totalReward: editData.totalReward,
       endDate: editData.endDate,
       requirements: editData.requirements,
+      tags: [...editData.tags, editData.costTag].filter(Boolean),
+      cost: editData.cost,
     });
   };
 
@@ -256,6 +264,10 @@ export default function EditAirdropPage({ params }: { params: Promise<{ id: stri
                       <p className="font-semibold text-gray-800 dark:text-white">{airdrop.totalReward || 'N/A'}</p>
                     </div>
                     <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Cost</p>
+                      <p className="font-semibold text-gray-800 dark:text-white">{airdrop.cost || 'Free'}</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">End Date</p>
                       <p className="font-semibold text-gray-800 dark:text-white">
                         {airdrop.endDate ? new Date(airdrop.endDate).toLocaleDateString() : 'N/A'}
@@ -334,6 +346,16 @@ export default function EditAirdropPage({ params }: { params: Promise<{ id: stri
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Cost (Text label)</label>
+                    <input
+                      type="text"
+                      value={editData.cost}
+                      onChange={(e) => setEditData({ ...editData, cost: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                      placeholder="E.g., Free, $10, 0.1 ETH"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                       Requirements (comma-separated)
                     </label>
@@ -344,6 +366,32 @@ export default function EditAirdropPage({ params }: { params: Promise<{ id: stri
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
                       placeholder="Requirement 1, Requirement 2, Requirement 3"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Cost Category</label>
+                      <select
+                        value={editData.costTag}
+                        onChange={(e) => setEditData({ ...editData, costTag: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                      >
+                        <option value="">None / Unspecified</option>
+                        <option value="Free">Free</option>
+                        <option value="Free/Paid">Free/Paid</option>
+                        <option value="Paid">Paid</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        Other Tags (comma-separated)
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.tags.join(', ')}
+                        onChange={(e) => setEditData({ ...editData, tags: e.target.value.split(',').map(r => r.trim()).filter(Boolean) })}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -373,6 +421,9 @@ export default function EditAirdropPage({ params }: { params: Promise<{ id: stri
                     totalReward: airdrop.totalReward,
                     endDate: airdrop.endDate ? new Date(airdrop.endDate).toISOString().split('T')[0] : '',
                     requirements: airdrop.requirements || [],
+                    tags: airdrop.tags?.filter((t:string) => !['Free', 'Free/Paid', 'Paid'].includes(t)) || [],
+                    costTag: airdrop.tags?.find((t:string) => ['Free', 'Free/Paid', 'Paid'].includes(t)) || '',
+                    cost: airdrop.cost || 'Free',
                   });
                 }}
                 className="ml-2 px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"

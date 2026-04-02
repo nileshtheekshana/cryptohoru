@@ -175,9 +175,9 @@ export default function AirdropTasks({ airdropId, tasks, isAirdropEnded }: Airdr
                   {index + 1}
                 </div>
                 
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className={`text-lg font-semibold ${
                         isTaskEnded 
                           ? 'text-gray-500 dark:text-gray-400' 

@@ -20,6 +20,9 @@ export default function NewP2EPage() {
     websiteUrl: '',
     image: '',
     status: 'active',
+    tags: '',
+    costTag: '',
+    cost: 'Free',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -35,7 +38,10 @@ export default function NewP2EPage() {
       const response = await fetch('/api/p2e', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          tags: [...formData.tags.split(',').map(t => t.trim()).filter(Boolean), formData.costTag].filter(Boolean),
+        }),
       });
 
       const data = await response.json();
@@ -211,6 +217,53 @@ export default function NewP2EPage() {
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 💡 Tip: You can also add images in the description using Markdown: ![alt text](image-url)
               </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Cost Category
+                </label>
+                <select
+                  name="costTag"
+                  value={formData.costTag}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">None / Unspecified</option>
+                  <option value="Free">Free</option>
+                  <option value="Free/Paid">Free/Paid</option>
+                  <option value="Paid">Paid</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Cost (Text label)
+                </label>
+                <input
+                  type="text"
+                  name="cost"
+                  value={formData.cost}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="E.g., Free, $10, 0.1 ETH"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Other Tags
+                </label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="e.g. Strategy, NFT"
+                />
+              </div>
             </div>
 
             <div>

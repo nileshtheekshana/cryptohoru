@@ -23,6 +23,7 @@ export default function NewAMAPage() {
     status: 'upcoming',
     preAMA: false,
     preAMADetails: '',
+    cost: 'Free',
     tasks: [] as Array<{title: string, description: string, type: string, link: string, reward: string}>,
   });
   const [createdItem, setCreatedItem] = useState<any | null>(null);
@@ -146,6 +147,21 @@ export default function NewAMAPage() {
                 required
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                 placeholder="AMA with Project Name"
+              />
+            </div>
+
+            {/* Cost Label */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Cost (Text label)
+              </label>
+              <input
+                type="text"
+                name="cost"
+                value={formData.cost}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                placeholder="E.g., Free, $10, 0.1 ETH"
               />
             </div>
 

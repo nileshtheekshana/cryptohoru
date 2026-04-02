@@ -3,6 +3,7 @@ import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
 import { sendNewContentToChannel, generateGiveawayPost } from '@/lib/telegram';
 import { ObjectId } from 'mongodb';
+import { processBase64Image } from '@/lib/imageProcessor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       image,
+      cost,
       prize,
       winners,
       endDate,
@@ -66,10 +68,13 @@ export async function POST(request: NextRequest) {
         }))
       : [];
 
+    const finalImage = await processBase64Image(image);
+
     const newGiveaway = {
       title,
       description,
-      image: image || '',
+      image: finalImage || '',
+      cost: cost || 'Free',
       prize,
       winners: winners || 1,
       endDate: new Date(endDate),

@@ -3,6 +3,7 @@ import { validateAPIKey } from '@/lib/apiAuth';
 import clientPromise from '@/lib/mongodb-client';
 import { sendNewContentToChannel, generateAirdropPost } from '@/lib/telegram';
 import { ObjectId } from 'mongodb';
+import { processBase64Image } from '@/lib/imageProcessor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +21,8 @@ export async function POST(request: NextRequest) {
       title,
       description,
       image,
+      category,
+      cost,
       reward,
       blockchain,
       status,
@@ -70,11 +73,14 @@ export async function POST(request: NextRequest) {
         }))
       : [];
 
+    const finalImage = await processBase64Image(image);
+
     const newAirdrop = {
       title,
       description,
-      image: image || '',
-      category: 'Airdrop',
+      image: finalImage || '',
+      category: category || 'Airdrop',
+      cost: cost || 'Free',
       reward: reward || '',
       blockchain: blockchain || '',
       status: status || 'active',
