@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthProvider from "@/components/AuthProvider";
 import { TimezoneProvider } from "@/components/TimezoneProvider";
+import { AdsterraBottomSection, AdsterraTopSection } from "@/components/AdsterraBanners";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -133,9 +134,11 @@ export default function RootLayout({
         <AuthProvider>
           <TimezoneProvider>
             <Navbar />
+            <AdsterraTopSection />
             <main className="flex-grow">
               {children}
             </main>
+            <AdsterraBottomSection />
             <Footer />
           </TimezoneProvider>
         </AuthProvider>
