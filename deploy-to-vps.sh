@@ -29,7 +29,9 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 print_header() {
-    clear
+    if [ -t 1 ] && command -v clear >/dev/null 2>&1; then
+        clear
+    fi
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║${NC}   ${GREEN}🔒 CryptoHoru SECURE Deployment${NC}                              ${BLUE}║${NC}"
@@ -293,30 +295,18 @@ setup_application() {
     git config credential.helper store
     print_success "Repository cloned"
     
-    # Verify Next.js version is patched
-    print_step "Verifying Next.js security patch..."
-    NEXT_VERSION=$(node -p "require('./package.json').dependencies.next" 2>/dev/null || echo "unknown")
-    print_warning "Next.js version in package.json: $NEXT_VERSION"
-    
-    # Install dependencies (clean install without vulnerabilities)
-    print_step "Installing npm dependencies..."
-    npm ci --production=false 2>/dev/null || npm install
+    # Install dependencies from lockfile (deterministic deploy)
+    print_step "Installing npm dependencies from lockfile..."
+    npm ci
     print_success "Dependencies installed"
-    
-    # Security check during first install
+
+    # Security check (report-only; do not mutate app versions during deploy)
     print_security "Checking for vulnerabilities in dependencies..."
     echo ""
-    
-    npm audit --production > /tmp/first_audit.txt 2>&1
-    VULN_COUNT=$(grep -E "([0-9]+) vulnerabilities" /tmp/first_audit.txt | grep -oE "[0-9]+" | head -1)
-    
-    if [ -n "$VULN_COUNT" ] && [ "$VULN_COUNT" -gt 0 ]; then
-        print_warning "Found $VULN_COUNT vulnerabilities during installation"
-        print_step "Auto-fixing vulnerabilities..."
-        npm audit fix --force
-        print_success "Vulnerabilities fixed"
-    else
-        print_success "No vulnerabilities detected - clean installation!"
+
+    npm audit --omit=dev > /tmp/first_audit.txt 2>&1 || true
+    if grep -q "vulnerabilities" /tmp/first_audit.txt; then
+        cat /tmp/first_audit.txt
     fi
     echo ""
     
@@ -721,88 +711,9 @@ update_deployment() {
     fi
     print_success "Latest code pulled from GitHub"
     
-    # Security audit before installation
-    print_security "Running security vulnerability scan..."
-    echo ""
-    
-    # Check for vulnerabilities
-    print_step "Checking npm audit..."
-    npm audit --production > /tmp/audit_report.txt 2>&1
-    VULN_COUNT=$(grep -E "([0-9]+) vulnerabilities" /tmp/audit_report.txt | grep -oE "[0-9]+" | head -1)
-    
-    if [ -n "$VULN_COUNT" ] && [ "$VULN_COUNT" -gt 0 ]; then
-        print_warning "Found $VULN_COUNT vulnerabilities"
-        echo ""
-        cat /tmp/audit_report.txt
-        echo ""
-        
-        print_step "Attempting to fix vulnerabilities..."
-        npm audit fix --force
-        
-        print_step "Re-checking vulnerabilities..."
-        npm audit --production > /tmp/audit_report_fixed.txt 2>&1
-        VULN_COUNT_AFTER=$(grep -E "([0-9]+) vulnerabilities" /tmp/audit_report_fixed.txt | grep -oE "[0-9]+" | head -1)
-        
-        if [ -z "$VULN_COUNT_AFTER" ] || [ "$VULN_COUNT_AFTER" -eq 0 ]; then
-            print_success "All vulnerabilities fixed!"
-        else
-            print_warning "Reduced to $VULN_COUNT_AFTER vulnerabilities"
-            echo ""
-            cat /tmp/audit_report_fixed.txt
-        fi
-    else
-        print_success "No vulnerabilities detected"
-    fi
-    echo ""
-    
-    # Check CVE-2025-55182 specifically
-    print_step "Checking CVE-2025-55182 (React2Shell)..."
-    NEXT_VERSION=$(node -p "require('./package.json').dependencies.next" 2>/dev/null | tr -d '^~')
-    REACT_VERSION=$(node -p "require('./package.json').dependencies.react" 2>/dev/null | tr -d '^~')
-    REACT_DOM_VERSION=$(node -p "require('./package.json').dependencies['react-dom']" 2>/dev/null | tr -d '^~')
-    
-    NEEDS_PATCH=false
-    
-    # Check Next.js version (need 15.5.7+)
-    if [[ "$NEXT_VERSION" < "15.5.7" ]]; then
-        print_warning "Next.js $NEXT_VERSION is vulnerable! Updating to 15.5.7..."
-        NEEDS_PATCH=true
-    fi
-    
-    # Check React version (need 19.1.2+)
-    if [[ "$REACT_VERSION" < "19.1.2" ]]; then
-        print_warning "React $REACT_VERSION is vulnerable! Updating to 19.1.2..."
-        NEEDS_PATCH=true
-    fi
-    
-    # Check React DOM version (need 19.1.2+)
-    if [[ "$REACT_DOM_VERSION" < "19.1.2" ]]; then
-        print_warning "react-dom $REACT_DOM_VERSION is vulnerable! Updating to 19.1.2..."
-        NEEDS_PATCH=true
-    fi
-    
-    if [ "$NEEDS_PATCH" = true ]; then
-        print_step "Applying CVE-2025-55182 patch..."
-        npm install next@15.5.7 react@19.1.2 react-dom@19.1.2
-        print_success "CVE-2025-55182 patched!"
-    else
-        print_success "Not vulnerable to CVE-2025-55182"
-    fi
-    echo ""
-    
-    # Verify versions after updates
-    print_step "Verifying security patches..."
-    INSTALLED_NEXT=$(npm list next --depth=0 2>/dev/null | grep next | head -1)
-    INSTALLED_REACT=$(npm list react --depth=0 2>/dev/null | grep -E "react@" | head -1)
-    INSTALLED_REACT_DOM=$(npm list react-dom --depth=0 2>/dev/null | grep react-dom | head -1)
-    echo -e "${CYAN}$INSTALLED_NEXT${NC}"
-    echo -e "${CYAN}$INSTALLED_REACT${NC}"
-    echo -e "${CYAN}$INSTALLED_REACT_DOM${NC}"
-    echo ""
-    
-    # Install/update dependencies
-    print_step "Installing dependencies..."
-    npm install
+    # Deterministic dependency installation from package-lock
+    print_step "Installing dependencies from lockfile..."
+    npm ci
     print_success "Dependencies installed"
     
     # Build
@@ -826,7 +737,7 @@ update_deployment() {
     # Final security verification
     echo ""
     print_security "Post-deployment security check..."
-    npm audit --production | head -20
+    npm audit --omit=dev || true
     
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
@@ -839,8 +750,8 @@ update_deployment() {
     echo ""
     echo -e "${CYAN}Security Status:${NC}"
     echo -e "  ✅ Latest code from GitHub deployed"
-    echo -e "  ✅ Vulnerabilities scanned and fixed"
-    echo -e "  ✅ CVE-2025-55182 patched"
+    echo -e "  ✅ Deterministic install from lockfile (npm ci)"
+    echo -e "  ✅ Vulnerabilities reported (no forced version mutation during deploy)"
     echo -e "  ✅ Application rebuilt and restarted"
     echo ""
 }
